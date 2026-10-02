@@ -1,0 +1,23 @@
+# Postgres cho phát triển: docker compose up -d db
+# Có sẵn 2 CSDL: parkflow (chạy ứng dụng) và parkflow_test (chạy kiểm thử, tránh lẫn dữ liệu).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: parkflow
+      POSTGRES_USER: parkflow
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-parkflow}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      # Máy đã có Postgres chiếm cổng 5432? Đặt DB_PORT=5433 (và DB_URL trỏ tới cổng đó)
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parkflow -d parkflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  dbdata:

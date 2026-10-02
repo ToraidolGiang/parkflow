@@ -1,0 +1,1 @@
+-- Khung trắng: chưa có bảng nào. Lược đồ dữ liệu được viết trong giờ thi, bắt đầu từ V1__...sql (xem docs/ke-hoach-ngay-thi.md).

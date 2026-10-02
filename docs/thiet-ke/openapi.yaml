@@ -1,0 +1,1345 @@
+openapi: 3.1.0
+info:
+  title: ParkFlow API
+  version: 1.0.0
+  description: |
+    Hợp đồng API ParkFlow (nguồn chính; `docs/04-api.md` là bản đọc nhanh, lệch thì theo file này).
+    Gồm **tất cả** endpoint, kể cả nhóm Nên có và Cắt được. Mỗi thao tác có `x-tier`: `required` (Bắt buộc, mặc định nếu không ghi) · `should` (Nên có) · `optional` (Cắt được: làm nếu còn giờ, nhưng hợp đồng đã chốt sẵn).
+
+    **Quy ước chung**
+    - API vận hành dùng phiên đăng nhập trong cookie `pf_session`; endpoint công khai và endpoint dùng API key được ghi riêng ở từng thao tác.
+    - Thời gian đầy đủ dùng ISO 8601 có múi giờ `+07:00`; giờ trong ngày dùng chuỗi `HH:mm`.
+    - Khi trình giả lập đang chạy, mọi mốc thời gian là **giờ mô phỏng** (xem `clock` ở `/api/lots/status`).
+    - Sự kiện từ nhà cung cấp dùng `snake_case`; phản hồi của API dùng `camelCase`.
+    - Mức `level` tính theo sức chứa **thiết kế** (`capacity`): green < 80% · yellow 80–<100% · red 100–<120% · critical ≥ 120%.
+    - AI không bao giờ nhận `card_hash` hay dữ liệu từng xe, chỉ số liệu tổng hợp.
+servers:
+  - url: /api
+security: []
+tags:
+  - name: ingest
+  - name: dashboard
+  - name: plan
+  - name: student
+  - name: config
+  - name: sim
+  - name: ai
+  - name: ops
+  - name: import
+  - name: rules
+  - name: staff
+    description: Quản lý ca trực, ca mặc định và tiến độ công việc của bảo vệ.
+
+paths:
+  /events:
+    post:
+      tags: [ingest]
+      summary: Nhận sự kiện quẹt thẻ (1 sự kiện hoặc mảng tối đa 500)
+      security: [{ ApiKey: [] }]
+      parameters:
+        - name: X-Timestamp
+          in: header
+          required: false
+          description: 'Ký HMAC (tùy chọn, bật theo từng nhà cung cấp): thời điểm gửi, ISO 8601; lệch quá 5 phút bị từ chối'
+          schema: { type: string, format: date-time }
+        - name: X-Signature
+          in: header
+          required: false
+          description: 'Ký HMAC (tùy chọn): hex của HMAC-SHA256(secret, X-Timestamp + "." + body thô). Sai chữ ký thì 401 BAD_SIGNATURE'
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/Event'
+                - type: array
+                  maxItems: 500
+                  items: { $ref: '#/components/schemas/Event' }
+      responses:
+        '200':
+          description: Đã xử lý (sự kiện lỗi nằm trong `rejected`, không làm hỏng cả lô)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EventResult' }
+              example: { accepted: 1, duplicate: 0, rejected: [] }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '413': { $ref: '#/components/responses/TooLarge' }
+
+  /lots/status:
+    get:
+      tags: [dashboard]
+      summary: Trạng thái hiện tại từng bãi (frontend poll mỗi 5 giây)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LotsStatus' }
+
+  /forecast:
+    get:
+      tags: [dashboard]
+      summary: Dự báo một bãi trong ngày, mỗi 15 phút từ 06:00 đến 13:00
+      parameters:
+        - { name: lotId, in: query, required: true, schema: { $ref: '#/components/schemas/LotId' } }
+        - { name: date, in: query, required: true, schema: { type: string, format: date, example: '2026-10-03' } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Forecast' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /plan/current:
+    get:
+      tags: [plan]
+      summary: Kế hoạch phân luồng đang áp dụng (kèm bản chờ duyệt nếu có)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Plan' }
+        '404':
+          description: Chưa có kế hoạch nào (`error = NO_PLAN`); frontend hiện "Chưa có kế hoạch"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /plan/{version}/approve:
+    post:
+      tags: [plan]
+      summary: Quản trị duyệt một phiên bản kế hoạch
+      parameters:
+        - { name: version, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approvedBy]
+              properties:
+                approvedBy: { type: string, example: admin }
+                option:
+                  type: string
+                  description: Lựa chọn xử lý phần thiếu chỗ (`shortfallOptions[].code`), bắt buộc khi kế hoạch có `shortfall > 0`
+                  example: ACCEPT_HIGHER
+      responses:
+        '200':
+          description: Đã duyệt
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [version, status]
+                properties:
+                  version: { type: integer }
+                  status: { type: string, enum: [approved] }
+              example: { version: 4, status: approved }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Phiên bản đã duyệt hoặc đã bị thay bằng bản mới (`error = PLAN_STALE`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /student/recommendation:
+    get:
+      tags: [student]
+      summary: Gợi ý bãi + cổng + đường đi cho sinh viên
+      description: |
+        Chưa có kế hoạch được duyệt thì trả gợi ý mặc định (bãi gần tòa nhà) với `planVersion = null`, `changed = false`, không trả lỗi.
+        Cùng `sessionId` gọi lại thì giữ nguyên gợi ý cũ (chống nhảy); `changed = true` khi có kế hoạch mới thay đổi gợi ý.
+      parameters:
+        - { name: building, in: query, required: true, schema: { $ref: '#/components/schemas/BuildingId' } }
+        - { name: arrive, in: query, required: false, description: 'Giờ dự kiến đến (HH:mm); mặc định là giờ hiện tại', schema: { type: string, pattern: '^\d{2}:\d{2}$', example: '07:10' } }
+        - { name: sessionId, in: query, required: true, description: 'Frontend sinh và lưu trên máy', schema: { type: string, example: 'b7d1c2f0' } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Recommendation' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /config:
+    get:
+      tags: [config]
+      summary: Cấu hình trường (chỉ đọc)
+      description: Trả nguyên `campus_config.json` (xem `docs/05-du-lieu-mau.md`).
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Config' }
+    put:
+      tags: [config]
+      summary: Sửa cấu hình trường
+      x-tier: optional
+      description: Thay toàn bộ cấu hình. Kiểm tra hợp lệ (đủ 4 bãi, 2 cổng, 8 tuyến, `capacity ≤ max`); sai thì 400 và giữ bản cũ. Áp dụng từ vòng tính kế tiếp; không xóa lịch sử.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Config' }
+      responses:
+        '200':
+          description: Đã lưu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Config' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /sim/start:
+    post:
+      security: [{ ApiKey: [] }]
+      description: X-Api-Key phải khớp SIM_CONTROL_API_KEY; chưa cấu hình khóa thì trả 503.
+      tags: [sim]
+      summary: Bật trình giả lập
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date: { type: string, format: date, example: '2026-09-22' }
+                speed: { type: integer, minimum: 1, maximum: 3600, example: 30, description: '1 giây thật = speed giây mô phỏng' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SimState' } } } }
+  /sim/stop:
+    post:
+      security: [{ ApiKey: [] }]
+      description: Dừng ngay; request ingest đang gửi có thể hoàn tất. Cần SIM_CONTROL_API_KEY.
+      tags: [sim]
+      summary: Tắt trình giả lập
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SimState' } } } }
+  /sim/spike:
+    post:
+      security: [{ ApiKey: [] }]
+      description: X-Api-Key phải khớp SIM_CONTROL_API_KEY.
+      tags: [sim]
+      summary: Tăng đột biến lượng xe vào (bỏ `lotId` = mọi bãi)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pct]
+              properties:
+                lotId: { $ref: '#/components/schemas/LotId' }
+                pct: { type: integer, minimum: 0, maximum: 100, example: 20 }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SimState' } } } }
+  /sim/state:
+    get:
+      tags: [sim]
+      summary: Trạng thái trình giả lập
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/SimState' } } } }
+
+  /ai/chat:
+    post:
+      tags: [ai]
+      summary: Trợ lý AI trả lời trên số liệu đã tính
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question]
+              properties:
+                question: { type: string, example: 'Sáng mai có bãi nào nguy cơ quá tải không?' }
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      role: { type: string, enum: [user, assistant] }
+                      text: { type: string }
+      description: 'Quản lý và bảo vệ đều hỏi được; bảo vệ chỉ nhận dữ liệu cổng và việc của chính mình (tối đa 10 câu mỗi phút, vượt thì 429). Phản hồi có thêm chart và proposal do backend dựng từ số liệu.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiChat' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /ai/map-columns:
+    post:
+      tags: [ai]
+      summary: AI ánh xạ cột file/payload lạ sang trường chuẩn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, headers]
+              properties:
+                kind: { type: string, enum: [swipe_log, schedule] }
+                headers: { type: array, items: { type: string } }
+                sampleRows:
+                  type: array
+                  maxItems: 5
+                  items: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [mappings, source]
+                properties:
+                  mappings:
+                    type: array
+                    items:
+                      type: object
+                      required: [column, field, confidence]
+                      properties:
+                        column: { type: string, example: ThoiGianVao }
+                        field: { type: string, example: time_in }
+                        confidence: { type: number, minimum: 0, maximum: 1, example: 0.98 }
+                  source: { $ref: '#/components/schemas/AiSource' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /ai/mode:
+    get:
+      tags: [ai]
+      summary: Xem công tắc Mock Data
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AiMode' } } } }
+    put:
+      tags: [ai]
+      summary: Bật/tắt Mock Data
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AiMode' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/AiMode' } } } }
+
+  /health:
+    get:
+      tags: [ops]
+      summary: Kiểm tra sống (UptimeRobot, deploy.sh)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, enum: [ok] }
+                  db: { type: string, enum: [up, down] }
+              example: { status: ok, db: up }
+
+  /gates/status:
+    get:
+      tags: [dashboard]
+      summary: Tình hình từng cổng (màn Bảo vệ)
+      x-tier: optional
+      description: Dữ liệu cho màn Bảo vệ. Tính từ lưu lượng vào thực tế, dự báo (`gateLoad`) và `gateActions` của kế hoạch đang áp dụng.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GatesStatus' }
+
+  /quality/flags:
+    get:
+      tags: [dashboard]
+      summary: Danh sách cờ chất lượng dữ liệu đang bật
+      x-tier: should
+      description: Chi tiết cho `dataFlag` ở `/lots/status`. Mất tín hiệu ít nhất 5 phút trong 06:30–09:00 tạo cờ signal_lost; nếu có nền cùng thứ, trạng thái bãi trả estimated và số ước lượng được kẹp theo maxCapacity. Thiếu lượt ra quá 24 giờ tạo missing_out; số vượt giới hạn hoặc lượt quẹt không khớp phiên tạo implausible_count.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QualityFlags' }
+
+  /default-shifts:
+    get:
+      tags: [staff]
+      operationId: listDefaultShifts
+      summary: Danh sách ca mặc định của bảo vệ
+      security: [{ SessionCookie: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/DefaultShift' } }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [staff]
+      operationId: createDefaultShift
+      summary: Tạo ca mặc định và lập ngay ca hôm nay, ngày mai nếu khớp thứ
+      security: [{ SessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DefaultShiftCreate' }
+      responses:
+        '201':
+          description: Đã tạo
+          content: { application/json: { schema: { $ref: '#/components/schemas/DefaultShift' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /default-shifts/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer, minimum: 1 } }
+    patch:
+      tags: [staff]
+      operationId: updateDefaultShift
+      summary: Sửa giờ, các thứ, ghi chú hoặc trạng thái ca mặc định
+      security: [{ SessionCookie: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DefaultShiftUpdate' }
+      responses:
+        '200':
+          description: Đã cập nhật
+          content: { application/json: { schema: { $ref: '#/components/schemas/DefaultShift' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [staff]
+      operationId: deleteDefaultShift
+      summary: Xóa ca mặc định và các ca tự tạo từ hôm nay trở đi
+      security: [{ SessionCookie: [] }]
+      responses:
+        '204': { description: Đã xóa }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /staff/roster:
+    get:
+      tags: [staff]
+      operationId: getStaffRoster
+      summary: Danh sách bảo vệ, ca trong ngày và tiến độ nhiệm vụ
+      security: [{ SessionCookie: [] }]
+      parameters:
+        - { name: day, in: query, required: false, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { $ref: '#/components/schemas/StaffRoster' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /plan/{version}/compliance:
+    get:
+      tags: [plan]
+      summary: Tỷ lệ sinh viên làm theo gợi ý của một phiên bản kế hoạch
+      x-tier: optional
+      description: '`compliance = số xe thực tế vào bãi đích trong khung / số suất đã phát cho bãi đích` (`docs/03` mục 7).'
+      parameters:
+        - { name: version, in: path, required: true, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Compliance' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /stream:
+    get:
+      tags: [dashboard]
+      summary: Luồng sự kiện thời gian thực (SSE), thay cho poll
+      x-tier: optional
+      description: |
+        `Content-Type: text/event-stream`. Mỗi sự kiện có `event:` và `data:` là JSON:
+        - `lots`: cùng shape `/lots/status`, gửi khi số xe đổi (gộp tối đa 1 lần/giây)
+        - `plan`: cùng shape `/plan/current`, gửi khi có phiên bản mới hoặc được duyệt
+        - `alert`: cùng shape một phần tử của `/alerts`
+        - `ping`: giữ kết nối, mỗi 15 giây
+
+        Frontend vẫn phải chạy được bằng poll 5 giây khi SSE lỗi.
+      responses:
+        '200':
+          description: Luồng SSE
+          content:
+            text/event-stream:
+              schema: { type: string }
+
+  /import/upload:
+    post:
+      tags: [import]
+      summary: Tải file lịch sử (CSV) lên để kiểm tra định dạng
+      x-tier: should
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, kind]
+              properties:
+                file: { type: string, format: binary }
+                kind: { type: string, enum: [swipe_log, schedule] }
+      responses:
+        '200':
+          description: File đọc được; frontend gọi tiếp `/ai/map-columns` với `headers` và `sampleRows`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportPreview' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '413': { $ref: '#/components/responses/TooLarge' }
+
+  /import/{importId}/confirm:
+    post:
+      tags: [import]
+      summary: Xác nhận ánh xạ cột và nhập dữ liệu
+      x-tier: should
+      parameters:
+        - { name: importId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mappings]
+              properties:
+                mappings:
+                  type: array
+                  description: Người dùng đã kiểm tra; cột `confidence < 0.8` bắt buộc được xác nhận trước khi gọi
+                  items:
+                    type: object
+                    required: [column, field]
+                    properties:
+                      column: { type: string }
+                      field: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ImportResult' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /schedule/summary:
+    get:
+      tags: [import]
+      summary: Lịch học đã nhập của một ngày, gom theo giờ bắt đầu và tòa nhà (bảo vệ và quản lý)
+      x-tier: should
+      parameters:
+        - { name: day, in: query, required: false, schema: { type: string, format: date }, description: Mặc định ngày làm việc hiện tại }
+      responses:
+        '200':
+          description: Gồm lịch lặp hằng ngày và lịch của đúng ngày; `slots` rỗng khi chưa nhập lịch
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /automation:
+    get:
+      tags: [plan]
+      summary: Chế độ tự động hóa và hạn nhận việc (quản lý)
+      x-tier: should
+      responses:
+        '200':
+          description: "{mode: manual|semi|auto, ackMinutes, modes[], changedBy?, changedAt?}"
+          content:
+            application/json:
+              schema: { type: object }
+    put:
+      tags: [plan]
+      summary: Đổi chế độ tự động hóa và/hoặc hạn nhận việc (quản lý)
+      x-tier: should
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode: { type: string, enum: [manual, semi, auto] }
+                ackMinutes: { type: integer, minimum: 1, maximum: 240 }
+      responses:
+        '200':
+          description: Trạng thái sau khi đổi
+          content:
+            application/json:
+              schema: { type: object }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /my/notifications:
+    get:
+      tags: [auth]
+      summary: Chuông thông báo của chính mình (bảo vệ và quản lý)
+      x-tier: should
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 30 } }
+      responses:
+        '200':
+          description: Mới nhất trước; `unread` đếm hết, không phụ thuộc `limit`
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /my/notifications/read:
+    post:
+      tags: [auth]
+      summary: Đánh dấu đã đọc (không có `ids` là tất cả); chỉ đụng thông báo của chính mình
+      x-tier: should
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids: { type: array, items: { type: integer } }
+      responses:
+        '200':
+          description: "{marked, unread}"
+          content:
+            application/json:
+              schema: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /rules:
+    get:
+      tags: [rules]
+      summary: Danh sách quy tắc đã lưu
+      x-tier: optional
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Rule' } }
+    post:
+      tags: [rules]
+      summary: Lưu quy tắc (sau khi quản trị xem trước và xác nhận)
+      x-tier: optional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RuleDraft' }
+      responses:
+        '201':
+          description: Đã lưu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Rule' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /rules/{id}:
+    patch:
+      tags: [rules]
+      summary: Sửa một phần quy tắc (bật/tắt hoặc đổi các trường)
+      description: >
+        Chỉ gửi trường cần đổi; `enabled` (boolean) và các trường của RuleDraft. Thân rỗng, trường lạ (`id`, `createdAt`...)
+        hoặc quy tắc sau khi gộp không hợp lệ thì 400. Đổi điều kiện (`type`, `scope`, `from`, `to`, `metric`, `op`, `value`) thì cảnh báo hôm nay của quy tắc được xóa để đánh giá lại ngay; đổi tên, hành động hoặc bật/tắt thì giữ.
+      x-tier: optional
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                enabled: { type: boolean }
+                name: { type: string }
+                type: { type: string, enum: [alert, routing] }
+                scope: { type: string, description: 'ALL hoặc mã bãi' }
+                from: { type: string, example: '06:30' }
+                to: { type: string, example: '08:00' }
+                metric: { type: string, enum: [forecast_pct, current_pct, inflow_15m] }
+                op: { type: string, enum: ['>=', '>', '<=', '<'] }
+                value: { type: number }
+                action: { type: string }
+      responses:
+        '200':
+          description: Quy tắc sau khi sửa
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Rule' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [rules]
+      summary: Xóa quy tắc
+      x-tier: optional
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Đã xóa }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /alerts:
+    get:
+      tags: [rules]
+      summary: Cảnh báo do quy tắc kích hoạt (mới nhất trước)
+      x-tier: optional
+      parameters:
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Alert' } }
+
+  /ai/parse-rule:
+    post:
+      tags: [ai]
+      summary: Câu tiếng Việt thành quy tắc có cấu trúc (chưa lưu; hiển thị để xem trước)
+      x-tier: optional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, example: 'Báo cho tôi từ hôm trước nếu bãi nào sắp đầy trước giờ vào học' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rule, explanation, source]
+                properties:
+                  rule: { $ref: '#/components/schemas/RuleDraft' }
+                  explanation: { type: string, example: 'Nếu dự báo lấp đầy của bất kỳ bãi nào ≥ 90% trong 06:30–08:00 thì thông báo điều hành từ 18:00 hôm trước.' }
+                  source: { $ref: '#/components/schemas/AiSource' }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+  /ai/report:
+    post:
+      tags: [ai]
+      summary: Báo cáo tuần do AI viết trên số liệu tổng hợp
+      x-tier: optional
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [weekStart]
+              properties:
+                weekStart: { type: string, format: date, example: '2026-09-14' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [markdown, source]
+                properties:
+                  markdown: { type: string, description: '4 mục: Tóm tắt tuần · Bãi căng nhất · Khung giờ cao điểm · Đề xuất vận hành tuần tới' }
+                  source: { $ref: '#/components/schemas/AiSource' }
+        '404': { description: 'Tuần này chưa có dữ liệu (`error = NO_DATA`); không bịa số', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '503': { $ref: '#/components/responses/AiUnavailable' }
+
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: Mỗi nhà cung cấp một key; trình giả lập dùng key riêng `SIMULATOR`.
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: pf_session
+      description: Phiên đăng nhập quản lý; các API staff chỉ cho vai manager.
+
+  responses:
+    BadRequest:
+      description: Dữ liệu sai
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthorized:
+      description: Sai hoặc thiếu API key, hoặc sai chữ ký HMAC (`error = BAD_SIGNATURE`)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthenticated:
+      description: Chưa đăng nhập hoặc phiên đã hết hạn
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Forbidden:
+      description: Tài khoản không có quyền quản lý
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: Không tìm thấy
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    TooLarge:
+      description: Mảng quá 500 sự kiện (`error = BATCH_TOO_LARGE`)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    AiUnavailable:
+      description: |
+        Groq và Gemini đều không dùng được (lỗi, quá 8 giây, sai định dạng hoặc chưa có khóa) khi công tắc Mock chưa bật.
+        Body giữ shape lỗi `{error: AI_UNAVAILABLE, message}` và thêm `fallback`: câu trả lời Mock cùng shape với phản hồi 200
+        (`source` = `mock`), dựng từ số liệu thật. Giao diện nên hiển thị `fallback` kèm nhãn "Dữ liệu mẫu" thay vì để trống.
+        Khi công tắc Mock bật thủ công thì trả 200 với `source` = `mock`, không phải 503.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Error'
+              - type: object
+                properties:
+                  fallback: { type: object, additionalProperties: true, description: 'Phản hồi Mock, cùng shape với phản hồi 200 của endpoint đó' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error: { type: string, example: UNKNOWN_LOT }
+        message: { type: string }
+
+    LotId: { type: string, enum: [A, B, C, D, C1, C2], description: 'HUCE dùng A/B/C1/C2; C/D chỉ dành cho bộ cấu hình legacy.' }
+    GateId: { type: string, enum: [MAIN, EAST], description: 'MAIN = Cổng chính, EAST = Cổng phía Đông' }
+    BuildingId: { type: string, enum: [NHC, TV, GDA, KTT, H1, H2, H3, G3, A1, A2, TN], description: 'Lấy danh sách hợp lệ từ /config; HUCE dùng H1/H2/H3/G3/A1/A2/TV/TN.' }
+    Level: { type: string, enum: [green, yellow, red, critical] }
+    DataFlag: { type: string, enum: [ok, suspect, signal_lost, estimated] }
+    AiSource: { type: string, enum: [gemini, groq, mock] }
+    HHmm: { type: string, pattern: '^\d{2}:\d{2}$', example: '07:45' }
+
+    Event:
+      type: object
+      required: [event_id, ts, lot_id, direction, vehicle_type, card_hash]
+      properties:
+        event_id: { type: string, maxLength: 50, example: evt_20261003_071244_A_0012, description: Trùng `event_id` thì bị đếm là `duplicate` }
+        ts: { type: string, format: date-time, example: '2026-10-03T07:12:44+07:00' }
+        lot_id: { $ref: '#/components/schemas/LotId' }
+        direction: { type: string, enum: [in, out] }
+        vehicle_type: { type: string, enum: [motorbike, bicycle, car] }
+        card_hash: { type: string, example: e91d4c }
+        gate:
+          $ref: '#/components/schemas/GateId'
+          description: 'Mở rộng, tùy chọn: cổng xe đi vào (khi có camera AI hoặc đầu đọc ở cổng). Bản demo không có; thiếu thì backend không dùng trường này'
+    EventResult:
+      type: object
+      required: [accepted, duplicate, rejected]
+      properties:
+        accepted: { type: integer }
+        duplicate: { type: integer }
+        rejected:
+          type: array
+          items:
+            type: object
+            required: [event_id, reason]
+            properties:
+              event_id: { type: string }
+              reason: { type: string, example: UNKNOWN_LOT }
+
+    Clock:
+      type: object
+      required: [mode, now]
+      description: Đồng hồ của hệ thống; frontend hiển thị `now` thay vì giờ máy khi `mode = sim`.
+      properties:
+        mode: { type: string, enum: [sim, real] }
+        now: { type: string, format: date-time }
+
+    LotStatus:
+      type: object
+      required: [lotId, name, count, capacity, maxCapacity, pct, level, gate, nearBuilding, lastEventAt, dataFlag]
+      properties:
+        lotId: { $ref: '#/components/schemas/LotId' }
+        name: { type: string, example: Bãi A }
+        count: { type: integer, example: 460 }
+        capacity: { type: integer, description: Sức chứa thiết kế, example: 500 }
+        maxCapacity: { type: integer, example: 600 }
+        pct: { type: number, description: '`count / capacity * 100`', example: 92.0 }
+        level: { $ref: '#/components/schemas/Level' }
+        gate: { $ref: '#/components/schemas/GateId' }
+        nearBuilding: { type: string, example: Nhà hành chính }
+        lastEventAt: { type: [string, 'null'], format: date-time }
+        dataFlag: { $ref: '#/components/schemas/DataFlag' }
+    LotsStatus:
+      type: object
+      required: [clock, updatedAt, lots, totals]
+      properties:
+        clock: { $ref: '#/components/schemas/Clock' }
+        updatedAt: { type: string, format: date-time }
+        lots: { type: array, items: { $ref: '#/components/schemas/LotStatus' } }
+        totals:
+          type: object
+          required: [count, overloadedLots, inflowLast15]
+          properties:
+            count: { type: integer }
+            overloadedLots: { type: integer, description: Số bãi có pct ≥ 100 }
+            inflowLast15: { type: integer, description: Số xe vào trong 15 phút gần nhất }
+
+    Forecast:
+      type: object
+      required: [lotId, date, k, generatedAt, peak, points, thresholds]
+      properties:
+        lotId: { $ref: '#/components/schemas/LotId' }
+        date: { type: string, format: date }
+        k: { type: number, description: 'Hệ số lệch thực tế/dự báo (kẹp 0,7–1,5)', example: 1.073 }
+        generatedAt: { type: string, format: date-time }
+        peak:
+          type: object
+          required: [t, count, pct]
+          properties:
+            t: { $ref: '#/components/schemas/HHmm' }
+            count: { type: integer, example: 605 }
+            pct: { type: number, example: 121.0 }
+        points:
+          type: array
+          items:
+            type: object
+            required: [t, actual, forecast, afterPlan]
+            properties:
+              t: { $ref: '#/components/schemas/HHmm' }
+              actual: { type: [integer, 'null'], description: Null cho thời điểm tương lai }
+              forecast: { type: integer, description: 'Đã hiệu chỉnh theo `k` cho các mốc sau thời điểm hiện tại' }
+              afterPlan: { type: integer, description: Sau khi áp dụng kế hoạch đang áp dụng }
+        thresholds:
+          type: object
+          description: Các đường ngưỡng vẽ trên biểu đồ (% sức chứa thiết kế)
+          required: [yellow, over, critical]
+          properties:
+            yellow: { type: integer, example: 80 }
+            over: { type: integer, example: 100 }
+            critical: { type: integer, example: 120 }
+        scheduleFactor: { type: number, example: 1.18, description: 'Hệ số đã áp từ lịch học đã nhập (tỷ lệ so với các ngày cùng thứ, chặn 0,7 đến 1,5; bằng 1 khi không chỉnh hoặc chưa đủ 2 ngày lịch để so sánh)' }
+
+    LotSnapshot:
+      type: object
+      required: [lotId, count, pct]
+      properties:
+        lotId: { $ref: '#/components/schemas/LotId' }
+        count: { type: integer }
+        pct: { type: number }
+    Move:
+      type: object
+      required: [from, to, gate, vehicles, quota, used]
+      properties:
+        from: { $ref: '#/components/schemas/LotId' }
+        to: { $ref: '#/components/schemas/LotId' }
+        gate:
+          $ref: '#/components/schemas/GateId'
+          description: 'Cổng gợi ý cho xe được điều hướng (chọn tuyến có mức dùng thấp hơn trong hai tuyến tới bãi đích; hòa thì dùng cổng mặc định của bãi đích)'
+        vehicles: { type: integer, description: Số xe cần chuyển }
+        quota: { type: integer, description: Số suất gợi ý phát cho sinh viên }
+        used: { type: integer, description: Số suất đã phát }
+    PlanBody:
+      type: object
+      required: [version, status, createdAt, window, reason, before, after, moves, excluded, shortfall, gateActions, envelope]
+      properties:
+        version: { type: integer }
+        status: { type: string, enum: [draft, approved, auto_applied, pending_approval] }
+        createdAt: { type: string, format: date-time }
+        window:
+          type: object
+          required: [from, to]
+          properties:
+            from: { $ref: '#/components/schemas/HHmm' }
+            to: { $ref: '#/components/schemas/HHmm' }
+        reason: { type: string }
+        before: { type: array, items: { $ref: '#/components/schemas/LotSnapshot' } }
+        after: { type: array, items: { $ref: '#/components/schemas/LotSnapshot' } }
+        moves: { type: array, items: { $ref: '#/components/schemas/Move' } }
+        excluded:
+          type: array
+          items:
+            type: object
+            required: [lotId, reason]
+            properties:
+              lotId: { $ref: '#/components/schemas/LotId' }
+              reason: { type: string, example: Cổng chính đang quá tải }
+        shortfall: { type: integer, description: Số xe không xếp được; > 0 thì cần quản trị chọn phương án }
+        shortfallOptions:
+          type: array
+          description: Chỉ có khi `shortfall > 0`
+          items:
+            type: object
+            required: [code, label]
+            properties:
+              code: { type: string, example: USE_LOT_D }
+              label: { type: string }
+        gateActions:
+          type: array
+          items:
+            type: object
+            required: [gate, openFrom, normalOpen, extraGuard]
+            properties:
+              gate: { $ref: '#/components/schemas/GateId' }
+              openFrom: { $ref: '#/components/schemas/HHmm' }
+              normalOpen: { $ref: '#/components/schemas/HHmm' }
+              extraGuard: { type: string, example: '06:45–08:00' }
+        envelope:
+          type: object
+          description: Khung quản trị cho phép; vượt khung thì bản mới ở trạng thái `pending_approval`
+          required: [maxMoveTotal, maxTargetPct, allowedDest]
+          properties:
+            maxMoveTotal: { type: integer, example: 150 }
+            maxTargetPct: { type: number, example: 1.0 }
+            allowedDest: { type: array, items: { $ref: '#/components/schemas/LotId' } }
+    Plan:
+      allOf:
+        - $ref: '#/components/schemas/PlanBody'
+        - type: object
+          required: [pending]
+          properties:
+            pending:
+              description: Bản vượt khung đang chờ duyệt (cùng shape với kế hoạch, không có `pending`); bản đang áp dụng giữ nguyên ở ngoài
+              oneOf:
+                - $ref: '#/components/schemas/PlanBody'
+                - type: 'null'
+
+    Recommendation:
+      type: object
+      required: [lotId, lotName, gate, gateName, openFrom, expectedPct, reason, planVersion, changed, route]
+      properties:
+        lotId: { $ref: '#/components/schemas/LotId' }
+        lotName: { type: string, example: Bãi C }
+        gate: { $ref: '#/components/schemas/GateId' }
+        gateName: { type: string, example: Cổng phía Đông }
+        openFrom: { $ref: '#/components/schemas/HHmm' }
+        expectedPct: { type: number, description: Mức lấp đầy dự kiến của bãi được gợi ý, example: 96 }
+        reason: { type: string, example: Bãi A dự kiến đầy lúc 07:15 }
+        planVersion: { type: [integer, 'null'], description: Null khi chưa có kế hoạch được duyệt }
+        changed: { type: boolean }
+        changeMessage: { type: [string, 'null'], example: Bãi C sắp đầy — chuyển sang Bãi B }
+        route:
+          type: object
+          required: [mapsUrl, path, steps, walkMinutes]
+          properties:
+            mapsUrl: { type: string, description: 'URL Google Maps; chuỗi rỗng khi GPS chưa xác minh.' }
+            path:
+              type: array
+              description: Điểm trên sơ đồ SVG của trường (khung 1000 × 700), không phải GPS
+              items:
+                type: array
+                minItems: 2
+                maxItems: 2
+                items: { type: number }
+            steps: { type: array, items: { type: string } }
+            walkMinutes: { type: integer, description: Phút đi bộ từ bãi tới tòa nhà }
+
+    Config:
+      type: object
+      description: Xem `docs/05-du-lieu-mau.md` mục 5
+      required: [school, thresholds, gates, buildings, lots, routes]
+      properties:
+        school: { type: string }
+        thresholds:
+          type: object
+          properties:
+            yellow: { type: number, example: 0.80 }
+            warn: { type: number, example: 0.90 }
+            over: { type: number, example: 1.00 }
+            target: { type: number, example: 0.96 }
+            targetMax: { type: number, example: 1.00 }
+            ceiling: { type: number, example: 1.20 }
+        gates: { type: array, items: { type: object, additionalProperties: true } }
+        buildings: { type: array, items: { type: object, additionalProperties: true } }
+        lots: { type: array, items: { type: object, additionalProperties: true } }
+        routes: { type: array, items: { type: object, additionalProperties: true } }
+      additionalProperties: true
+
+    SimState:
+      type: object
+      required: [running]
+      properties:
+        running: { type: boolean }
+        simTime: { type: [string, 'null'], format: date-time }
+        speed: { type: integer }
+        spike:
+          type: [object, 'null']
+          properties:
+            lotId:
+              anyOf:
+                - { $ref: '#/components/schemas/LotId' }
+                - { type: 'null' }
+            pct: { type: integer }
+        sent: { type: integer, description: Số sự kiện được ingest xác nhận (mới hoặc trùng) }
+        accepted: { type: integer }
+        duplicate: { type: integer }
+        remaining: { type: integer }
+        error: { type: [string, 'null'] }
+
+    AiChat:
+      type: object
+      required: [answer, facts, source]
+      properties:
+        answer: { type: string, description: Markdown }
+        facts:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label: { type: string, example: Bãi A }
+              value: { type: string, example: 113% }
+        suggestions: { type: array, items: { type: string } }
+        source: { $ref: '#/components/schemas/AiSource' }
+    AiMode:
+      type: object
+      required: [mock]
+      properties:
+        mock: { type: boolean }
+
+    GateStatus:
+      type: object
+      required: [gate, name, capacityPer15, inflowLast15, source, utilization, level, expectedIn]
+      properties:
+        gate: { $ref: '#/components/schemas/GateId' }
+        name: { type: string, example: Cổng chính }
+        source:
+          type: string
+          enum: [estimated, measured]
+          description: '`estimated` (demo): suy ra từ lưu lượng vào từng bãi nhân tỷ lệ cổng `gateShare` khai báo trong cấu hình. `measured`: đếm thực khi có camera AI/đầu đọc ở cổng (mở rộng)'
+        capacityPer15: { type: integer, description: 'Năng lực cổng (xe/15 phút), từ cấu hình', example: 200 }
+        inflowLast15: { type: integer, description: 'Số xe vào qua cổng trong 15 phút gần nhất (ước lượng hoặc đo thực, xem `source`)' }
+        utilization: { type: number, description: '`inflowLast15 / capacityPer15`', example: 0.87 }
+        level: { $ref: '#/components/schemas/Level' }
+        expectedIn:
+          type: array
+          description: Dự báo xe vào cổng theo từng khung 15 phút trong cao điểm (`gateLoad`)
+          items:
+            type: object
+            required: [t, count]
+            properties:
+              t: { $ref: '#/components/schemas/HHmm' }
+              count: { type: integer }
+        action:
+          description: Hành động của kế hoạch đang áp dụng (mở sớm, thêm bảo vệ); null nếu không có
+          oneOf:
+            - type: 'null'
+            - type: object
+              required: [openFrom, normalOpen, extraGuard]
+              properties:
+                openFrom: { $ref: '#/components/schemas/HHmm' }
+                normalOpen: { $ref: '#/components/schemas/HHmm' }
+                extraGuard: { type: string }
+    GatesStatus:
+      type: object
+      required: [clock, gates]
+      properties:
+        clock: { $ref: '#/components/schemas/Clock' }
+        gates: { type: array, items: { $ref: '#/components/schemas/GateStatus' } }
+
+    DefaultShiftCreate:
+      type: object
+      required: [userId, gate, from, to, weekdays]
+      properties:
+        userId: { type: integer, minimum: 1, description: Tài khoản bảo vệ đang hoạt động }
+        gate: { $ref: '#/components/schemas/GateId' }
+        from: { $ref: '#/components/schemas/HHmm' }
+        to: { $ref: '#/components/schemas/HHmm' }
+        weekdays:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          description: Thứ ISO, 1 là thứ Hai và 7 là Chủ nhật
+          items: { type: integer, minimum: 1, maximum: 7 }
+        note: { type: string, maxLength: 200 }
+    DefaultShiftUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        active: { type: boolean }
+        from: { $ref: '#/components/schemas/HHmm' }
+        to: { $ref: '#/components/schemas/HHmm' }
+        weekdays:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { type: integer, minimum: 1, maximum: 7 }
+        note: { type: string, maxLength: 200, description: Chuỗi rỗng xóa ghi chú }
+    DefaultShift:
+      type: object
+      required: [id, userId, userName, gate, gateName, from, to, weekdays, note, active]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        gate: { $ref: '#/components/schemas/GateId' }
+        gateName: { type: string }
+        from: { $ref: '#/components/schemas/HHmm' }
+        to: { $ref: '#/components/schemas/HHmm' }
+        weekdays:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items: { type: integer, minimum: 1, maximum: 7 }
+        note: { type: [string, 'null'], maxLength: 200 }
+        active: { type: boolean }
+    GuardAssignment:
+      type: object
+      required: [id, userId, userName, gate, gateName, day, from, to, note, auto]
+      properties:
+        id: { type: integer }
+        userId: { type: integer }
+        userName: { type: string }
+        gate: { $ref: '#/components/schemas/GateId' }
+        gateName: { type: string }
+        day: { type: string, format: date }
+        from: { $ref: '#/components/schemas/HHmm' }
+        to: { $ref: '#/components/schemas/HHmm' }
+        note: { type: [string, 'null'] }
+        auto: { type: boolean, description: Ca được tạo từ ca mặc định }
+    StaffRoster:
+      type: object
+      required: [day, guards]
+      properties:
+        day: { type: string, format: date }
+        guards:
+          type: array
+          items:
+            type: object
+            required: [id, username, fullName, online, lastSeenAt, shifts, counts, lastActionAt]
+            properties:
+              id: { type: integer }
+              username: { type: string }
+              fullName: { type: string }
+              online: { type: boolean, description: Có heartbeat trong 90 giây gần nhất }
+              lastSeenAt: { type: [string, 'null'], format: date-time }
+              shifts: { type: array, items: { $ref: '#/components/schemas/GuardAssignment' } }
+              counts:
+                type: object
+                required: [open, acknowledged, done, overdue]
+                properties:
+                  open: { type: integer, minimum: 0 }
+                  acknowledged: { type: integer, minimum: 0 }
+                  done: { type: integer, minimum: 0 }
+                  overdue: { type: integer, minimum: 0 }
+              lastActionAt: { type: [string, 'null'], format: date-time }
+
+    QualityFlag:
+      type: object
+      required: [id, lotId, type, since, message]
+      properties:
+        id: { type: string }
+        lotId: { $ref: '#/components/schemas/LotId' }
+        type: { type: string, enum: [missing_out, implausible_count, signal_lost] }
+        since: { type: string, format: date-time }
+        message: { type: string, example: 'Bãi A: 5 phút không có sự kiện trong giờ cao điểm' }
+    QualityFlags:
+      type: object
+      required: [flags]
+      properties:
+        flags: { type: array, items: { $ref: '#/components/schemas/QualityFlag' } }
+
+    Compliance:
+      type: object
+      required: [version, overall, byMove]
+      properties:
+        version: { type: integer }
+        overall: { type: number, description: 'Trung bình theo số suất; 1.0 khi chưa có số đo', example: 0.72 }
+        byMove:
+          type: array
+          items:
+            type: object
+            required: [from, to, issued, arrived, compliance]
+            properties:
+              from: { $ref: '#/components/schemas/LotId' }
+              to: { $ref: '#/components/schemas/LotId' }
+              issued: { type: integer, description: Số suất đã phát }
+              arrived: { type: integer, description: Số xe thực tế vào bãi đích trong khung }
+              compliance: { type: number }
+
+    ImportPreview:
+      type: object
+      required: [importId, kind, headers, sampleRows, rowCount, errors]
+      properties:
+        importId: { type: string }
+        kind: { type: string, enum: [swipe_log, schedule] }
+        headers: { type: array, items: { type: string } }
+        sampleRows:
+          type: array
+          maxItems: 5
+          items: { type: array, items: { type: string } }
+        rowCount: { type: integer }
+        errors:
+          type: array
+          description: Lỗi định dạng phát hiện khi đọc (dòng thiếu cột, sai kiểu ngày)
+          items:
+            type: object
+            required: [row, message]
+            properties:
+              row: { type: integer }
+              message: { type: string }
+    ImportResult:
+      type: object
+      required: [imported, skipped, rejected, errors]
+      properties:
+        imported: { type: integer, description: Bản ghi mới (sự kiện hoặc lớp học) }
+        skipped: { type: integer, description: Bản ghi đã có từ trước (nhập lại cùng file không nhân đôi) }
+        rejected: { type: integer, description: Số dòng bị từ chối; `errors` liệt kê tối đa 50 lý do kèm số dòng }
+        errors:
+          type: array
+          items:
+            type: object
+            required: [row, message]
+            properties:
+              row: { type: integer }
+              message: { type: string }
+
+    RuleDraft:
+      type: object
+      required: [name, type, scope, from, to, metric, op, value, action]
+      properties:
+        name: { type: string, example: Cảnh báo sớm trước giờ vào học }
+        type: { type: string, enum: [alert, routing], description: '`alert` chỉ tạo cảnh báo. `routing` hạ ngưỡng điều hướng của kế hoạch phân luồng (docs/03 mục 4b) nên bắt buộc `metric = forecast_pct`, `op` là `>=` hoặc `>`, `value` từ 50 đến 100; khác thì 400.' }
+        scope: { type: string, description: 'ALL hoặc mã bãi trong cấu hình trường (`GET /api/config` → `lots[].id`); mã không có trong cấu hình bị từ chối (400)', example: ALL }
+        from: { $ref: '#/components/schemas/HHmm' }
+        to: { $ref: '#/components/schemas/HHmm' }
+        metric: { type: string, enum: [forecast_pct, current_pct, inflow_15m] }
+        op: { type: string, enum: ['>=', '>', '<=', '<'] }
+        value: { type: number, example: 90 }
+        action: { type: string, example: Thông báo điều hành từ 18:00 hôm trước }
+    Rule:
+      allOf:
+        - $ref: '#/components/schemas/RuleDraft'
+        - type: object
+          required: [id, createdAt, enabled]
+          properties:
+            id: { type: integer }
+            createdAt: { type: string, format: date-time }
+            enabled: { type: boolean }
+    Alert:
+      type: object
+      required: [id, ruleId, at, lotId, message]
+      properties:
+        id: { type: integer }
+        ruleId: { type: integer }
+        at: { type: string, format: date-time }
+        lotId: { type: string, description: Mã bãi hoặc ALL }
+        message: { type: string, example: 'Bãi A dự báo 121% lúc 07:45 (≥ 90%)' }

@@ -1,0 +1,57 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: parkflow
+          POSTGRES_USER: parkflow
+          POSTGRES_PASSWORD: parkflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U parkflow -d parkflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Có backend/pom.xml không?
+        id: has
+        run: '[ -f backend/pom.xml ] && echo "yes=true" >> "$GITHUB_OUTPUT" || echo "yes=false" >> "$GITHUB_OUTPUT"'
+      - uses: actions/setup-java@v5
+        if: steps.has.outputs.yes == 'true'
+        with: { distribution: corretto, java-version: '17', cache: maven }
+      - name: Build + test
+        if: steps.has.outputs.yes == 'true'
+        working-directory: backend
+        run: |
+          chmod +x mvnw
+          ./mvnw -B verify
+      - name: Báo cáo test backend khi lỗi
+        if: failure() && steps.has.outputs.yes == 'true'
+        working-directory: backend
+        run: |
+          find target/surefire-reports target/failsafe-reports -type f -name '*.txt' -exec cat {} + 2>/dev/null || true
+
+  frontend:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Có frontend/package.json không?
+        id: has
+        run: '[ -f frontend/package.json ] && echo "yes=true" >> "$GITHUB_OUTPUT" || echo "yes=false" >> "$GITHUB_OUTPUT"'
+      - uses: actions/setup-node@v5
+        if: steps.has.outputs.yes == 'true'
+        with: { node-version: 24, cache: npm, cache-dependency-path: frontend/package-lock.json }
+      - name: Build
+        if: steps.has.outputs.yes == 'true'
+        working-directory: frontend
+        run: npm ci && npm run lint && npm test && npm run build

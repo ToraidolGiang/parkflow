@@ -1,0 +1,26 @@
+spring:
+  config:
+    import: optional:file:../.env[.properties]
+  application:
+    name: parkflow
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/parkflow}
+    username: ${DB_USER:parkflow}
+    password: ${DB_PASSWORD:parkflow}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    deserialization:
+      accept-single-value-as-array: true
+
+server:
+  port: ${PORT:8080}
