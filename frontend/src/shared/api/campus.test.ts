@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { CampusConfig } from '../types/campus'
-import { createCampusLookup, getCampusConfig } from './campus'
+import { createCampusLookup, getCampusConfig, updateCampusConfig } from './campus'
 
 const dynamicConfig: CampusConfig = {
   school: 'HUCE',
@@ -55,5 +55,32 @@ describe('campus config', () => {
     const second = await getCampusConfig()
     expect(second.school).toBe('Trường Đại học Xây dựng Hà Nội')
     expect(second.lots[0].name).not.toBe('Changed by caller')
+  })
+
+  it('updates the complete config with the API key in live mode', async () => {
+    vi.stubEnv('VITE_USE_MOCK_API', 'false')
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify(dynamicConfig), {
+      headers: { 'Content-Type': 'application/json' },
+    }))
+    vi.stubGlobal('fetch', fetcher)
+
+    await expect(updateCampusConfig(dynamicConfig, 'SIMULATOR')).resolves.toEqual(dynamicConfig)
+    expect(fetcher).toHaveBeenCalledWith('/api/config', expect.objectContaining({
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Api-Key': 'SIMULATOR' },
+      body: JSON.stringify(dynamicConfig),
+    }))
+  })
+
+  it('returns an isolated copy without network access in mock mode', async () => {
+    vi.stubEnv('VITE_USE_MOCK_API', 'true')
+    const fetcher = vi.fn()
+    vi.stubGlobal('fetch', fetcher)
+
+    const result = await updateCampusConfig(dynamicConfig, 'unused')
+    result.lots[0].name = 'Changed by caller'
+
+    expect(fetcher).not.toHaveBeenCalled()
+    expect((await updateCampusConfig(dynamicConfig, 'unused')).lots[0].name).toBe('Nhà xe Lab')
   })
 })

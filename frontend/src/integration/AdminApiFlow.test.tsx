@@ -40,8 +40,11 @@ it('runs dashboard to plan approval against the documented APIs', async () => {
     if (url === '/api/config') return json(config)
     if (url === '/api/lots/status') return json(status)
     if (url === '/api/quality/flags') return json({ flags: [] })
-    if (url.startsWith('/api/forecast?')) return json(forecast)
-    if (url === '/api/plan/current') return json({ ...planBody, pending: approved ? null : pending })
+    if (url === '/api/forecast?lotId=LAB-X9&date=2026-10-01'
+      || url === '/api/forecast?lotId=LAB-X9&date=2026-10-02') return json(forecast)
+    if (url === '/api/plan/current') return json(approved
+      ? { ...pending, status: 'approved', pending: null }
+      : { ...planBody, pending })
     if (url === '/api/sim/state') return json({ running: false, simTime: null, speed: 30, sent: 0, error: null, spike: null })
     if (url === '/api/plan/8/approve' && init?.method === 'POST') {
       expect(JSON.parse(String(init.body))).toEqual({ approvedBy: 'Tuan Anh', option: 'ACCEPT_HIGHER' })
@@ -64,9 +67,10 @@ it('runs dashboard to plan approval against the documented APIs', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Duyệt phương án' }))
 
   expect(await screen.findByText('Đã duyệt phương án phiên bản 8.')).toBeInTheDocument()
-  await waitFor(() => expect(screen.getByText('Đang áp dụng · v7')).toBeInTheDocument())
+  await waitFor(() => expect(screen.getByText('Đang áp dụng · v8')).toBeInTheDocument())
   expect(requested).toEqual(expect.arrayContaining([
-    'GET /api/lots/status', 'GET /api/plan/current', 'POST /api/plan/8/approve',
+    'GET /api/lots/status', 'GET /api/forecast?lotId=LAB-X9&date=2026-10-02',
+    'GET /api/plan/current', 'POST /api/plan/8/approve',
   ]))
   expect(requested.some((entry) => entry.includes('/api/import/upload') || /\/api\/import\/.*\/confirm/.test(entry))).toBe(false)
 })

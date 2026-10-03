@@ -21,3 +21,13 @@ export async function getCampusConfig(signal?: AbortSignal): Promise<CampusConfi
   if (mockApiEnabled()) return structuredClone(mockCampusConfig) as unknown as CampusConfig
   return request<CampusConfig>('/api/config', { signal })
 }
+
+export async function updateCampusConfig(config: CampusConfig, apiKey: string, signal?: AbortSignal): Promise<CampusConfig> {
+  if (mockApiEnabled()) return structuredClone(config)
+  return request<CampusConfig>('/api/config', {
+    method: 'PUT',
+    body: config,
+    apiKey,
+    signal,
+  })
+}
