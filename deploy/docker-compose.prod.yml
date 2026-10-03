@@ -1,0 +1,69 @@
+# Bản chạy thật: Postgres + backend + web (Caddy). Dựng và chạy từ GỐC repo:
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up -d --build
+# Chạy thử cục bộ bằng HTTP: đặt SITE_ADDRESS=:80 và HTTP_PORT=8088 trong deploy/.env.prod (sao từ deploy/prod.env.example).
+name: parkflow-thi
+
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: parkflow
+      POSTGRES_USER: parkflow
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Cần đặt DB_PASSWORD trong deploy/.env.prod}
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parkflow -d parkflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/parkflow
+      DB_USER: parkflow
+      DB_PASSWORD: ${DB_PASSWORD}
+      EVENTS_API_KEY: ${EVENTS_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      AI_MOCK: ${AI_MOCK:-false}
+      PARKFLOW_SIM_API_KEY: ${EVENTS_API_KEY:-}
+      PARKFLOW_SIM_CONTROL_KEY: ${SIM_CONTROL_KEY:-}
+      TZ: Asia/Ho_Chi_Minh
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /api/lots/status HTTP/1.0\\r\\n\\r\\n\" >&3 && head -n1 <&3 | grep -q \" 200 \"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS::80}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes:
+  dbdata:
+  caddydata:
+  caddyconfig:

@@ -32,3 +32,6 @@ Thumbs.db
 frontend/test-results/
 tmp/
 .parkflow-source/
+
+# Cấu hình triển khai chứa bí mật
+deploy/.env.prod
