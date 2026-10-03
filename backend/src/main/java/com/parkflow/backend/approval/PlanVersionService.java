@@ -84,4 +84,63 @@ public class PlanVersionService {
     }
 
     private ApiException stale() { return new ApiException(HttpStatus.CONFLICT,"PLAN_STALE","Kế hoạch đã đổi hoặc đã được duyệt"); }
+    public ObjectNode current() {
+        LocalDate date=clock.read().now().toLocalDate();
+        var latest=latest(date).orElseThrow(()->new ApiException(HttpStatus.NOT_FOUND,"NO_PLAN","Chưa có kế hoạch"));
+        var active=applied(date);
+        ObjectNode result=view(active.orElse(latest));
+        if(active.isPresent() && active.get().version()!=latest.version()) result.set("pending",view(latest));
+        else result.putNull("pending");
+        return result;
+    }
+
+    private ObjectNode view(Version version) {
+        ObjectNode body=version.body().deepCopy();
+        body.remove("_alternatives");
+        body.put("version",version.version());
+        body.put("status",version.status().name());
+        body.put("createdAt",version.createdAt().toString());
+        return body;
+    }
+
+    @Transactional
+    public Version approve(long version,String approvedBy,String option) {
+        if(approvedBy==null || approvedBy.isBlank()) throw new IllegalArgumentException("Approver required");
+        var initial=find(version).orElseThrow(()->new ApiException(HttpStatus.NOT_FOUND,"NO_PLAN","Không có kế hoạch"));
+        lock(initial.date());
+        var current=find(version).orElseThrow();
+        if(latest(current.date()).orElseThrow().version()!=version
+                || current.status()==Status.approved || current.status()==Status.auto_applied) throw stale();
+        ObjectNode body=current.body().deepCopy();
+        if(body.path("shortfall").asInt()>0) {
+            boolean offered=false;
+            for(var item:body.path("shortfallOptions")) if(item.path("code").asString().equals(option)) offered=true;
+            if(!offered) throw new IllegalArgumentException("Choose an offered shortfall option");
+            if(!"ACCEPT_HIGHER".equals(option)) {
+                var resolved=body.path("_alternatives").path(option);
+                if(!resolved.isObject() || resolved.path("shortfall").asInt(-1)!=0) {
+                    throw new IllegalArgumentException("Resolved alternative unavailable");
+                }
+                body=(ObjectNode)resolved.deepCopy();
+            }
+            body.put("selectedOption",option);
+            jdbc.update("UPDATE plan_versions SET body=?::jsonb WHERE version=?",mapper.writeValueAsString(body),version);
+        } else if(option!=null && !option.isBlank()) throw new IllegalArgumentException("No shortfall option required");
+        return transition(version,Status.approved,approvedBy);
+    }
+
+    public int afterPlan(LocalDate date,String lotId,java.time.LocalTime time,int forecast) {
+        var active=applied(date);
+        if(active.isEmpty()) return forecast;
+        var body=active.get().body();
+        var from=java.time.LocalTime.parse(body.path("window").path("from").asString());
+        var to=java.time.LocalTime.parse(body.path("window").path("to").asString());
+        if(time.isBefore(from) || time.isAfter(to)) return forecast;
+        long count=forecast;
+        for(var move:body.path("moves")) {
+            if(lotId.equals(move.path("from").asString())) count-=move.path("vehicles").asInt();
+            if(lotId.equals(move.path("to").asString())) count+=move.path("vehicles").asInt();
+        }
+        return (int)Math.max(0,count);
+    }
 }
