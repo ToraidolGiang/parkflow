@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { request } from '../../pages/sv/api/http'
+import { currentVietnamDate } from '../utils/date'
 import './simulation.css'
 
 type SimState = { running: boolean; simTime: string | null; speed: number; sent: number; error: string | null; spike: { lotId: string | null; pct: number } | null }
@@ -8,7 +9,7 @@ export function SimulationControls() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [controlKey, setControlKey] = useState('')
-  const [date, setDate] = useState('2026-09-22')
+  const [date, setDate] = useState(currentVietnamDate)
   const [speed, setSpeed] = useState(30)
   const [lot, setLot] = useState('A')
   const [lots, setLots] = useState<{ id: string; name: string }[]>([])
