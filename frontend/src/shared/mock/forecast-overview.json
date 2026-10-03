@@ -1,0 +1,56 @@
+{
+  "date": "22/09/2026",
+  "generatedAt": "21/09/2026 08:45",
+  "selectedLot": "Bãi A",
+  "peak": { "t": "07:45", "pct": 113 },
+  "shortage": 65,
+  "lowestLot": { "lotId": "D", "pct": 66, "gate": "Cổng chính" },
+  "thresholds": { "warn": 90, "design": 100, "ceiling": 120 },
+  "points": [
+    { "t": "06:00", "actual": 15, "forecast": 18, "afterPlan": 15 },
+    { "t": "06:30", "actual": 28, "forecast": 30, "afterPlan": 25 },
+    { "t": "07:00", "actual": 52, "forecast": 58, "afterPlan": 47 },
+    { "t": "07:15", "actual": 68, "forecast": 70, "afterPlan": 58 },
+    { "t": "07:30", "actual": 89, "forecast": 90, "afterPlan": 75 },
+    { "t": "07:45", "actual": null, "forecast": 108, "afterPlan": 92 },
+    { "t": "08:00", "actual": null, "forecast": 113, "afterPlan": 96 },
+    { "t": "08:15", "actual": null, "forecast": 104, "afterPlan": 89 },
+    { "t": "08:30", "actual": null, "forecast": 99, "afterPlan": 85 },
+    { "t": "09:00", "actual": null, "forecast": 90, "afterPlan": 75 },
+    { "t": "09:30", "actual": null, "forecast": 76, "afterPlan": 63 },
+    { "t": "10:00", "actual": null, "forecast": 61, "afterPlan": 52 },
+    { "t": "10:30", "actual": null, "forecast": 52, "afterPlan": 46 },
+    { "t": "11:00", "actual": null, "forecast": 45, "afterPlan": 40 },
+    { "t": "11:30", "actual": null, "forecast": 42, "afterPlan": 37 },
+    { "t": "12:00", "actual": null, "forecast": 50, "afterPlan": 44 },
+    { "t": "12:30", "actual": null, "forecast": 68, "afterPlan": 58 },
+    { "t": "13:00", "actual": null, "forecast": 78, "afterPlan": 66 }
+  ],
+  "plan": {
+    "version": 4,
+    "status": "pending_approval",
+    "window": { "from": "07:15", "to": "08:00" },
+    "before": [
+      { "lotId": "A", "count": 565, "capacity": 500, "pct": 113 },
+      { "lotId": "B", "count": 311, "capacity": 350, "pct": 89 },
+      { "lotId": "C", "count": 324, "capacity": 400, "pct": 81 },
+      { "lotId": "D", "count": 198, "capacity": 300, "pct": 66 }
+    ],
+    "after": [
+      { "lotId": "A", "count": 480, "capacity": 500, "pct": 96 },
+      { "lotId": "B", "count": 336, "capacity": 350, "pct": 96 },
+      { "lotId": "C", "count": 384, "capacity": 400, "pct": 96 },
+      { "lotId": "D", "count": 198, "capacity": 300, "pct": 66 }
+    ],
+    "moves": [
+      { "from": "A", "to": "C", "vehicles": 60 },
+      { "from": "A", "to": "B", "vehicles": 25 }
+    ],
+    "gateActions": [{ "gate": "Cổng phía Đông", "openFrom": "06:45", "normalOpen": "07:00" }],
+    "excluded": [{ "lotId": "D", "reason": "Cổng chính đang quá tải" }],
+    "shortfall": 0
+  },
+  "qualityFlags": [
+    { "id": "signal-c", "severity": "warning", "message": "Tín hiệu Bãi C gián đoạn 3 phút · đang dùng số ước tính gần nhất." }
+  ]
+}

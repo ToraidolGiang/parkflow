@@ -5,6 +5,9 @@ import { StudentFlowProvider } from './pages/sv/state/StudentFlowContext'
 import { StudentSelectionPage } from './pages/sv/StudentSelectionPage'
 import { StudentRecommendationPage } from './pages/sv/StudentRecommendationPage'
 import { StudentRoutePage } from './pages/sv/route/StudentRoutePage'
+import { ForecastPage } from './pages/forecast/ForecastPage'
+import { ImportPage } from './pages/import/ImportPage'
+import { AssistantPage } from './pages/assistant/AssistantPage'
 
 function Screen({ title }: { title: string }) {
   return <section className="screen"><h1>{title}</h1></section>
@@ -19,9 +22,9 @@ export default function App() {
     <Route path="sv/*" element={<StudentRoutes />} />
     <Route element={<AppShell />}>
       <Route index element={<Screen title="Bảng điều khiển" />} />
-      <Route path="forecast" element={<Screen title="Dự báo & Đề xuất" />} />
-      <Route path="assistant" element={<Screen title="Trợ lý" />} />
-      <Route path="import" element={<Screen title="Nhập dữ liệu" />} />
+      <Route path="forecast" element={<ForecastPage />} />
+      <Route path="assistant" element={<AssistantPage />} />
+      <Route path="import" element={<ImportPage />} />
       <Route path="*" element={<Navigate replace to="/" />} />
     </Route>
   </Routes>
