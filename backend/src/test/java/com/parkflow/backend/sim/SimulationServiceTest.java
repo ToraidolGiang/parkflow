@@ -6,6 +6,18 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class SimulationServiceTest {
+    @Test void spikeRequiresRunningSessionAndResetsOnRestart() {
+        var service = new SimulationService(mock(EventSender.class));
+        assertThrows(ApiException.class, () -> service.spike(null, 20));
+        service.start(ReplayLog.DEMO_DATE, 30);
+        assertEquals(new SimulationService.Spike(null, 20), service.spike(null, 20).get("spike"));
+        assertThrows(IllegalArgumentException.class, () -> service.spike(null, 101));
+        assertThrows(IllegalArgumentException.class, () -> service.spike("unknown-lot", 20));
+        assertNull(service.spike(null, 0).get("spike"));
+        service.spike(null, 20);
+        service.stop();
+        assertNull(service.start(ReplayLog.DEMO_DATE, 30).get("spike"));
+    }
     @Test void startExposesSimulatedClockAndStopRestoresRealClock() {
         var service = new SimulationService(mock(EventSender.class));
         var state = service.start(ReplayLog.DEMO_DATE, 30);
