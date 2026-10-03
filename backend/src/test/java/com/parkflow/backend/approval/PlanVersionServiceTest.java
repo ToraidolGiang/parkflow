@@ -62,4 +62,33 @@ class PlanVersionServiceTest {
         var first=create(565);
         assertThrows(IllegalArgumentException.class,()->service.transition(first.version(),approved," "));
     }
+    tools.jackson.databind.node.ObjectNode proposal(int vehicles,String destination) {
+        var body=mapper.createObjectNode().put("shortfall",0);
+        body.putArray("moves").addObject().put("from","A").put("to",destination).put("vehicles",vehicles);
+        body.putArray("after").addObject().put("lotId",destination).put("pct",95);
+        var envelope=body.putObject("envelope").put("maxMoveTotal",150).put("maxTargetPct",1);
+        envelope.putArray("allowedDest").add("B");
+        return body;
+    }
+    @Test void publishesPendingThenAutoAppliesOnlyInsideApprovedEnvelope() {
+        when(clock.read()).thenReturn(new ParkFlowClock.Reading("sim",OffsetDateTime.parse("2026-10-03T07:20:00+07:00")));
+        var first=service.publish(date,proposal(65,"B"),snapshot(565));
+        assertEquals(pending_approval,first.status());
+        service.approve(first.version(),"admin",null);
+        var next=service.publish(date,proposal(90,"B"),snapshot(590));
+        assertEquals(auto_applied,next.status());
+        assertEquals(next.version(),service.applied(date).orElseThrow().version());
+        assertEquals(next.version(),service.publish(date,proposal(91,"B"),snapshot(591)).version());
+        var outside=service.publish(date,proposal(115,"C"),snapshot(615));
+        assertEquals(pending_approval,outside.status());
+        assertEquals(next.version(),service.applied(date).orElseThrow().version());
+    }
+    @Test void excessiveMoveTotalRequiresApprovalAndPreservesActivePlan() {
+        when(clock.read()).thenReturn(new ParkFlowClock.Reading("sim",OffsetDateTime.parse("2026-10-03T07:20:00+07:00")));
+        var first=service.publish(date,proposal(65,"B"),snapshot(565));
+        service.approve(first.version(),"admin",null);
+        var outside=service.publish(date,proposal(151,"B"),snapshot(651));
+        assertEquals(pending_approval,outside.status());
+        assertEquals(first.version(),service.applied(date).orElseThrow().version());
+    }
 }
