@@ -1,0 +1,20 @@
+# SITE_ADDRESS là tên miền (HTTPS tự cấp, ví dụ thi.1-2-3-4.sslip.io) hoặc :80 khi chạy thử cục bộ bằng HTTP.
+{$SITE_ADDRESS::80} {
+	encode gzip
+
+	# Mọi lời gọi API đi vào backend; giao diện là file tĩnh.
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+}
