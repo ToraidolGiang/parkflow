@@ -143,4 +143,38 @@ public class PlanVersionService {
         }
         return (int)Math.max(0,count);
     }
+    @Transactional
+    public Version publish(LocalDate date,ObjectNode body,PlanHysteresis.Snapshot snapshot) {
+        lock(date);
+        var previous=latest(date);
+        var candidate=create(date,body,snapshot);
+        if(previous.isPresent() && previous.get().version()==candidate.version()) return candidate;
+        var active=applied(date);
+        boolean automatic=active.isPresent() && withinEnvelope(body,active.get().body().path("envelope"));
+        if(automatic) {
+            body=body.deepCopy();
+            body.set("envelope",active.get().body().path("envelope").deepCopy());
+            jdbc.update("UPDATE plan_versions SET body=?::jsonb WHERE version=?",mapper.writeValueAsString(body),candidate.version());
+        }
+        return transition(candidate.version(),automatic?Status.auto_applied:Status.pending_approval,automatic?"system":null);
+    }
+
+    private boolean withinEnvelope(ObjectNode body,tools.jackson.databind.JsonNode envelope) {
+        if(body.path("shortfall").asInt(-1)!=0 || !envelope.isObject()) return false;
+        long total=0;
+        java.util.Set<String> allowed=new java.util.HashSet<>();
+        envelope.path("allowedDest").forEach(n->allowed.add(n.asString()));
+        for(var move:body.path("moves")) {
+            total+=move.path("vehicles").asInt();
+            if(!allowed.contains(move.path("to").asString())) return false;
+        }
+        if(total>envelope.path("maxMoveTotal").asInt(0)) return false;
+        for(var lot:body.path("after")) {
+            // Chỉ áp giới hạn đích lên các bãi nhận xe, không lên bãi nguồn quá tải.
+            boolean destination=false;
+            for(var move:body.path("moves")) if(move.path("to").asString().equals(lot.path("lotId").asString())) destination=true;
+            if(destination && lot.path("pct").asDouble()>envelope.path("maxTargetPct").asDouble(0)*100) return false;
+        }
+        return true;
+    }
 }
