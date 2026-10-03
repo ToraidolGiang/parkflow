@@ -12,7 +12,7 @@ ENV_FILE="$SHARED/.env.prod"
 KEEP=4   # giữ bấy nhiêu bản gần nhất để quay lại
 
 log() { printf '[%s] %s\n' "$(date +%H:%M:%S)" "$*"; }
-compose() { local rel="$1"; shift; docker compose -p parkflow-thi -f "$RELEASES/$rel/deploy/docker-compose.prod.yml" --env-file "$ENV_FILE" "$@"; }
+compose() { local rel="$1"; shift; RELEASE_ID="$rel" docker compose -p parkflow-thi -f "$RELEASES/$rel/deploy/docker-compose.prod.yml" --env-file "$ENV_FILE" "$@"; }
 
 mkdir -p "$RELEASES" "$SHARED" "$BASE/backups"
 [ -f "$ENV_FILE" ] || { echo "Thiếu $ENV_FILE. Tạo từ deploy/prod.env.example rồi chạy lại." >&2; exit 2; }
@@ -41,7 +41,7 @@ if ! compose "$ID" up -d --remove-orphans; then
 fi
 
 healthy() {
-  for _ in $(seq 1 60); do
+  for _ in $(seq 1 36); do
     state="$(docker inspect -f '{{.State.Health.Status}}' parkflow-thi-backend-1 2>/dev/null || echo none)"
     [ "$state" = "healthy" ] && return 0
     sleep 5
