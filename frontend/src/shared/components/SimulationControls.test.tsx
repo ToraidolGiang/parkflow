@@ -1,6 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
-import { currentVietnamDate } from '../utils/date'
 import { SimulationControls } from './SimulationControls'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -12,12 +11,12 @@ it('starts the API simulator and submits a scoped 20 percent spike', async () =>
   })
   vi.stubGlobal('fetch', fetcher)
   render(<SimulationControls />)
-  fireEvent.change(screen.getByLabelText('Khóa điều khiển'), { target: { value: 'test-control' } })
+  fireEvent.change(screen.getByLabelText(/Chỉ cần khi máy chủ chạy không đăng nhập/), { target: { value: 'test-control' } })
   await waitFor(() => expect(screen.getByRole('button', { name: 'Bắt đầu giả lập' })).toBeEnabled())
   fireEvent.click(screen.getByRole('button', { name: 'Bắt đầu giả lập' }))
   await screen.findByRole('button', { name: 'Dừng giả lập' })
   fireEvent.click(screen.getByRole('button', { name: 'Đột biến +20%' }))
   await waitFor(() => expect(fetcher.mock.calls.some(([url, init]) => url === '/api/sim/spike' && init?.body === JSON.stringify({ lotId: 'A', pct: 20 }))).toBe(true))
-  expect(fetcher.mock.calls.some(([url, init]) => url === '/api/sim/start' && init?.body === JSON.stringify({ date: currentVietnamDate(), speed: 30 }))).toBe(true)
-  expect(fetcher.mock.calls.filter(([url]) => url.startsWith('/api/sim/') && !url.endsWith('/state')).every(([, init]) => new Headers(init?.headers).get('X-Api-Key') === 'test-control')).toBe(true)
+  expect(fetcher.mock.calls.some(([url, init]) => url === '/api/sim/start' && init?.body === JSON.stringify({ date: '2026-09-22', speed: 30 }))).toBe(true)
+  expect(fetcher.mock.calls.filter(([url]) => url.startsWith('/api/sim/') && !url.endsWith('/state') && !url.endsWith('/dates')).every(([, init]) => new Headers(init?.headers).get('X-Api-Key') === 'test-control')).toBe(true)
 })
