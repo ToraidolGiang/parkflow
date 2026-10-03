@@ -32,6 +32,9 @@ public class Lot {
     @Column(length = 20)
     private String gate;
 
+    @Column(name = "near_building", length = 100)
+    private String nearBuilding;
+
     @Column(name = "current_count", nullable = false)
     private Integer currentCount = 0;
 
