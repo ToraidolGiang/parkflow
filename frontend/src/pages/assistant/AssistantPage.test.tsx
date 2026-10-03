@@ -85,6 +85,30 @@ describe('AssistantPage', () => {
     fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
     await screen.findByText('Nhà xe B có nguy cơ quá tải.')
     expect(screen.getByRole('heading', { name: /Dự báo Nhà xe B/ })).toBeInTheDocument()
+    expect(getForecastOverview).toHaveBeenCalledWith('B', expect.any(AbortSignal))
+  })
+
+  it('resolves a coded lot label to the matching forecast lot', async () => {
+    vi.mocked(useDashboardOverview).mockReturnValue({ data: dashboard, error: undefined, isLoading: false, isRefreshing: false, refresh: vi.fn() })
+    vi.mocked(chatWithAssistant).mockResolvedValue({ answer: 'Bãi B có nguy cơ quá tải.', facts: [{ label: 'Bãi B', value: '105%' }], suggestions: [], source: 'mock' })
+    vi.mocked(getForecastOverview).mockResolvedValue(forecast as never)
+    render(<MemoryRouter><AssistantPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('Nhập câu hỏi'), { target: { value: 'Bãi nào quá tải?' } })
+    fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
+    await screen.findByText('Bãi B có nguy cơ quá tải.')
+    expect(getForecastOverview).toHaveBeenCalledWith('B', expect.any(AbortSignal))
+  })
+
+  it('renders AI markdown as text and never injects returned HTML', async () => {
+    vi.mocked(useDashboardOverview).mockReturnValue({ data: dashboard, error: undefined, isLoading: false, isRefreshing: false, refresh: vi.fn() })
+    vi.mocked(chatWithAssistant).mockResolvedValue({ answer: '<img src=x onerror=alert(1)> **An toàn**', facts: [], suggestions: [], source: 'mock' })
+    vi.mocked(getForecastOverview).mockResolvedValue(forecast as never)
+    render(<MemoryRouter><AssistantPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('Nhập câu hỏi'), { target: { value: 'Kiểm tra an toàn' } })
+    fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
+    await screen.findByText('<img src=x onerror=alert(1)>')
+    expect(document.querySelector('.assistant-markdown img')).not.toBeInTheDocument()
+    expect(screen.getByText('An toàn')).toBeInTheDocument()
   })
 
   it('does not show a fixed proposal when the answer has no operational proposal', async () => {
@@ -106,6 +130,7 @@ describe('AssistantPage', () => {
     fireEvent.change(screen.getByLabelText('Nhập câu hỏi'), { target: { value: 'Nhà xe C1 hiện thế nào?' } })
     fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
     await screen.findByText('Dự báo Nhà xe C1 ở mức an toàn.')
+    await screen.findByText(/80% Sắp đầy/)
     expect(screen.getByText(/80%/)).toBeInTheDocument()
     expect(screen.getByText(/100%/)).toBeInTheDocument()
     expect(screen.getByText(/120%/)).toBeInTheDocument()

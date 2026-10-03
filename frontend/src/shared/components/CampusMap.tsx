@@ -1,6 +1,11 @@
 import { createCampusLookup } from '../api/campus'
-import type { CampusConfig } from '../types/campus'
+import canonicalHuceGeometry from '../mock/huce-campus-geometry.json'
 import type { LotStatus } from '../types/dashboard'
+import { useEffect, useState } from 'react'
+import type { CampusConfig, CampusGeometry, PartialCampusGeometry } from '../types/campus'
+import { request } from '../../pages/sv/api/http'
+import { HuceCampusMap } from './HuceCampusMap'
+import { resolveHuceGeometry } from './campusGeometry'
 
 type CampusMapProps = {
   lots: LotStatus[]
@@ -10,7 +15,27 @@ type CampusMapProps = {
   campus?: CampusConfig
 }
 
+type GeometryConfig = CampusConfig & PartialCampusGeometry
+const huceGeometry = canonicalHuceGeometry as CampusGeometry
+
 export function CampusMap({ lots, variant = 'admin', highlightedLotId, showRoute = false, campus }: CampusMapProps) {
+  // HUCE keeps a stable visual layout; the API only supplies live labels/data.
+  const huce = lots.some(l => l.lotId === 'C1')
+  const [geometry, setGeometry] = useState<CampusGeometry | undefined>(() => huce ? resolveHuceGeometry(campus as GeometryConfig | undefined, huceGeometry) : undefined)
+  useEffect(() => {
+    if (!huce) return
+    let active = true
+    // /api/config is the source of truth for labels/capacities, not map geometry.
+    // Keep the HUCE layout from the checked-in design fixture and merge current
+    // API names so a backend config without svg/map fields cannot collapse the map.
+    const refresh = () => request<GeometryConfig>('/api/config').then(config => {
+      if (!active) return
+      setGeometry(resolveHuceGeometry(config, huceGeometry))
+    }).catch(() => { /* giữ lưới dự phòng, thử lại sau 30 giây */ })
+    void refresh()
+    const timer = setInterval(() => { void refresh() }, 30000)
+    return () => { active = false; clearInterval(timer) }
+  }, [huce])
   const lookup = campus ? createCampusLookup(campus) : undefined
   const lotOrder = campus ? new Map(campus.lots.map((lot, index) => [lot.id, index])) : undefined
   const orderedLots = lots
@@ -32,6 +57,8 @@ export function CampusMap({ lots, variant = 'admin', highlightedLotId, showRoute
     ?? [...new Set(orderedLots.map((lot) => lot.gate).filter(Boolean))].map((name) => ({ id: name, name, svg: undefined }))
   const highlightedGate = orderedLots.find((lot) => lot.lotId === highlightedLotId)?.gate ?? gates[0]?.name
 
+  // Chưa có hình học (đang tải hoặc lỗi) thì vẫn hiện lưới theo cấu hình, không để trống sơ đồ.
+  if (huce && geometry) return <HuceCampusMap campus={geometry} lots={lots} highlightedLotId={highlightedLotId} compact={variant === 'student'} />
   if (variant === 'student') {
     return <div className="sv-map" aria-label="Sơ đồ khuôn viên"><div className="sv-map-grid">
       {orderedLots.map((lot) => <div className={`sv-lot ${lot.status} ${lot.lotId === highlightedLotId ? 'highlighted' : ''}`} data-svg={lot.svg?.join(',')} key={lot.lotId}><strong>{lot.name}</strong><span>{lot.percentage}%</span><small>{lot.nearby}</small>{lot.lotId === highlightedLotId && <em>Được gợi ý</em>}</div>)}
