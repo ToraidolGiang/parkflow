@@ -1,3 +1,4 @@
+import type { CampusMap } from '../../shared/types/campus'
 import type { LotStatus } from '../../shared/types/dashboard'
 
 export type BuildingId = 'NHC' | 'TV' | 'GDA' | 'KTT' | 'H1' | 'H2' | 'H3' | 'G3' | 'A1' | 'A2' | 'TN'
@@ -7,6 +8,7 @@ export type StudentConfig = { buildings: StudentBuilding[]; lots: LotStatus[]; c
   buildings: { id: string; name: string; svg: [number, number] }[]
   lots: { id: string; name: string; svg: [number, number] }[]
   gates: { id: string; name: string; svg: [number, number] }[]
+  map?: CampusMap
 } }
 export type StudentRecommendation = {
   lotId: LotStatus['lotId']; lotName: string; gate: 'MAIN' | 'EAST'; gateName: string

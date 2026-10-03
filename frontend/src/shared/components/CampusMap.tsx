@@ -1,6 +1,8 @@
 import { createCampusLookup } from '../api/campus'
 import type { CampusConfig } from '../types/campus'
 import type { LotStatus } from '../types/dashboard'
+import { HuceCampusMap } from './HuceCampusMap'
+import './huce-campus-map.css'
 
 type CampusMapProps = {
   lots: LotStatus[]
@@ -31,6 +33,13 @@ export function CampusMap({ lots, variant = 'admin', highlightedLotId, showRoute
   const gates = campus?.gates
     ?? [...new Set(orderedLots.map((lot) => lot.gate).filter(Boolean))].map((name) => ({ id: name, name, svg: undefined }))
   const highlightedGate = orderedLots.find((lot) => lot.lotId === highlightedLotId)?.gate ?? gates[0]?.name
+
+  if (campus?.map?.viewBox && campus.buildings.some((building) => building.id === 'H3')) {
+    const route = showRoute && highlightedLotId
+      ? campus.routes.find((item) => item.lot === highlightedLotId)?.path
+      : undefined
+    return <HuceCampusMap campus={campus} lots={lots} highlightedLotId={highlightedLotId} route={route} />
+  }
 
   if (variant === 'student') {
     return <div className="sv-map" aria-label="Sơ đồ khuôn viên"><div className="sv-map-grid">

@@ -46,6 +46,12 @@ export type CampusRoute = {
   [key: string]: unknown
 }
 
+export type CampusMap = {
+  viewBox?: number[]
+  roads?: Coordinate[][]
+  courtyard?: { x: number; y: number; width: number; height: number }
+}
+
 export type CampusConfig = {
   school: string
   thresholds: CampusThresholds
@@ -53,6 +59,7 @@ export type CampusConfig = {
   buildings: CampusBuilding[]
   lots: CampusLot[]
   routes: CampusRoute[]
+  map?: CampusMap
   [key: string]: unknown
 }
 
