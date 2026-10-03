@@ -22,6 +22,8 @@ public class SimulationService implements SimulationTimeSource {
     private long began;
     private int speed = 30, sent, accepted, duplicate;
     private String error;
+    private Spike spike;
+    public record Spike(String lotId, int pct) {}
 
     public SimulationService(EventSender sender) { this.sender = sender; }
 
@@ -38,17 +40,28 @@ public class SimulationService implements SimulationTimeSource {
         began = System.nanoTime();
         sent = accepted = duplicate = 0;
         error = null;
+        spike = null;
         running = true;
         return state();
     }
 
     public synchronized Map<String, Object> stop() { running = false; return state(); }
 
+    public synchronized Map<String, Object> spike(String lotId, int pct) {
+        if (pct < 0 || pct > 100) throw new IllegalArgumentException("pct must be 0..100");
+        if (!running) throw new ApiException(HttpStatus.CONFLICT, "SIM_NOT_RUNNING", "Bắt đầu giả lập trước khi tăng đột biến.");
+        if (lotId != null && ReplayLog.read(start.atZone(ParkFlowClock.ZONE).toLocalDate()).stream().noneMatch(event -> event.lot().equals(lotId)))
+            throw new IllegalArgumentException("Unknown lotId");
+        spike = pct == 0 ? null : new Spike(lotId, pct);
+        return state();
+    }
+
     public synchronized Map<String, Object> state() {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("running", running);
         result.put("simTime", now == null ? null : now.atZone(ParkFlowClock.ZONE).toOffsetDateTime().toString());
         result.put("speed", speed);
+        result.put("spike", spike);
         result.put("sent", sent);
         result.put("accepted", accepted);
         result.put("duplicate", duplicate);
@@ -80,6 +93,7 @@ public class SimulationService implements SimulationTimeSource {
                     duplicate += 1 - added;
                     sent++;
                     queue.remove();
+                    if (spike != null) queue.addAll(SpikeEvents.from(event, spike.lotId(), spike.pct()));
                     if (queue.isEmpty()) running = false;
                 }
             }

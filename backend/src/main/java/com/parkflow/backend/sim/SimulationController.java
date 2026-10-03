@@ -16,6 +16,13 @@ public class SimulationController {
     }
 
     public record Start(LocalDate date, Integer speed) {}
+    public record Spike(String lotId, Integer pct) {}
+
+    @PostMapping("/spike")
+    public Map<String, Object> spike(@RequestHeader(value = "X-Api-Key", required = false) String key, @RequestBody Spike body) {
+        guard.check(key);
+        return simulation.spike(body.lotId(), body.pct() == null ? 20 : body.pct());
+    }
 
     @PostMapping("/start")
     public Map<String, Object> start(@RequestHeader(value = "X-Api-Key", required = false) String key, @RequestBody Start body) {

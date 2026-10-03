@@ -19,3 +19,11 @@ Dừng bằng `POST /api/sim/stop` với cùng header `X-Api-Key`. Đồng hồ 
 Khi cổng nhập cấu hình `EVENTS_API_KEY`, đặt `parkflow.sim.api-key` bằng một khóa được cổng nhập chấp nhận. Không có khóa điều khiển thì API bắt đầu/dừng trả `503 SIM_DISABLED`.
 
 Kiểm thử: `SimulationServiceTest` và `ParkFlowClockTest`.
+
+## Tăng đột biến +20%
+
+Khi giả lập đang chạy, gọi `POST /api/sim/spike` với header `X-Api-Key` như lúc bắt đầu và body `{"pct":20}`. Có thể truyền thêm `lotId` để áp dụng riêng một bãi; bỏ `pct` thì mặc định 20. Gửi `{"pct":0}` để tắt việc tạo thêm xe.
+
+Trong các lượt vào tiếp theo có giờ ra hợp lệ, khoảng 20% được chọn bằng hàm băm ổn định để tạo thêm một xe. Đây là tỷ lệ bổ sung trên luồng lượt vào, không phải tăng ngay 20% số xe đang đỗ. Mỗi xe mới dùng mã thẻ mới, giữ bãi và loại xe, có cặp vào/ra trễ hơn xe gốc một giây. Xe bổ sung không sinh tiếp xe khác. Tắt đột biến vẫn giữ lượt ra đã lên lịch của xe bổ sung; bắt đầu phiên mới xóa cấu hình đột biến.
+
+`GET /api/sim/state` trả cấu hình `spike` hiện tại. Chưa bắt đầu giả lập thì endpoint trả `409 SIM_NOT_RUNNING`. Kiểm thử cặp vào/ra và tỷ lệ lựa chọn nằm trong `SpikeEventsTest`.
