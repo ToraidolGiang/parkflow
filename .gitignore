@@ -31,3 +31,4 @@ Thumbs.db
 # Kết quả chạy cục bộ
 frontend/test-results/
 tmp/
+.parkflow-source/
