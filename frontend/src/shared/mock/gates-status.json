@@ -1,0 +1,68 @@
+{
+  "clock": {
+    "mode": "sim",
+    "now": "2026-10-03T07:21:05+07:00"
+  },
+  "gates": [
+    {
+      "gate": "MAIN",
+      "name": "Cổng chính",
+      "capacityPer15": 200,
+      "inflowLast15": 187,
+      "utilization": 0.935,
+      "level": "yellow",
+      "expectedIn": [
+        {
+          "t": "07:15",
+          "count": 192
+        },
+        {
+          "t": "07:30",
+          "count": 206
+        },
+        {
+          "t": "07:45",
+          "count": 188
+        },
+        {
+          "t": "08:00",
+          "count": 150
+        }
+      ],
+      "action": null,
+      "source": "estimated"
+    },
+    {
+      "gate": "EAST",
+      "name": "Cổng phía Đông",
+      "capacityPer15": 200,
+      "inflowLast15": 151,
+      "utilization": 0.755,
+      "level": "green",
+      "expectedIn": [
+        {
+          "t": "07:15",
+          "count": 150
+        },
+        {
+          "t": "07:30",
+          "count": 160
+        },
+        {
+          "t": "07:45",
+          "count": 148
+        },
+        {
+          "t": "08:00",
+          "count": 120
+        }
+      ],
+      "action": {
+        "openFrom": "06:45",
+        "normalOpen": "07:00",
+        "extraGuard": "06:45–08:00"
+      },
+      "source": "estimated"
+    }
+  ]
+}

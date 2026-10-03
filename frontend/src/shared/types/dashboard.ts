@@ -1,5 +1,5 @@
 export type LotStatus = {
-  lotId: 'A' | 'B' | 'C' | 'D'
+  lotId: string
   name: string
   current: number
   capacity: number

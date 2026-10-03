@@ -1,0 +1,35 @@
+{
+  "lotId": "B",
+  "lotName": "Bãi B",
+  "gate": "EAST",
+  "gateName": "Cổng phía Đông",
+  "openFrom": "06:45",
+  "expectedPct": 100,
+  "reason": "Bãi C hết suất, chuyển sang Bãi B",
+  "planVersion": 4,
+  "changed": true,
+  "changeMessage": "Bãi C sắp đầy — chuyển sang Bãi B",
+  "route": {
+    "mapsUrl": "https://www.google.com/maps/dir/?api=1&destination=21.0000,105.0000",
+    "path": [
+      [
+        860,
+        400
+      ],
+      [
+        720,
+        400
+      ],
+      [
+        720,
+        300
+      ]
+    ],
+    "steps": [
+      "Vào Cổng phía Đông",
+      "Đi thẳng trục chính ~60 m",
+      "Bãi B bên trái, gần Thư viện"
+    ],
+    "walkMinutes": 5
+  }
+}

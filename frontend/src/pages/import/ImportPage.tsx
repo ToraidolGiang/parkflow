@@ -1,16 +1,25 @@
 import { useState, type ChangeEvent } from 'react'
 import './import.css'
+import './import-mapping.css'
 
 type Step = 1 | 2 | 3
 type Mapping = { column: string; field: string; confidence: number }
 
-const mappings: Mapping[] = [
+const logMappings: Mapping[] = [
   { column: 'ts_in', field: 'Thời điểm vào', confidence: 98 },
   { column: 'ts_out', field: 'Thời điểm ra', confidence: 97 },
   { column: 'gate_id', field: 'Cổng', confidence: 95 },
   { column: 'card_id', field: 'Mã thẻ sinh viên', confidence: 92 },
   { column: 'lot_id', field: 'Bãi', confidence: 88 },
   { column: 'vehicle_type', field: 'Loại xe', confidence: 79 },
+]
+
+const scheduleMappings: Mapping[] = [
+  { column: 'class_id', field: 'Mã lớp', confidence: 98 },
+  { column: 'building', field: 'Tòa nhà', confidence: 96 },
+  { column: 'start_time', field: 'Giờ bắt đầu', confidence: 97 },
+  { column: 'end_time', field: 'Giờ kết thúc', confidence: 96 },
+  { column: 'students', field: 'Số sinh viên', confidence: 94 },
 ]
 
 const previewRows = [
@@ -37,7 +46,9 @@ function UploadStep({ onSample, onInvalid }: { onSample: () => void; onInvalid: 
 }
 
 function MappingStep({ checked, onChecked, onNext }: { checked: boolean; onChecked: (value: boolean) => void; onNext: () => void }) {
-  return <section className="mapping-stage"><h2>AI nhận diện cột</h2><p>Log quẹt thẻ <span className="ai-chip">AI</span></p><div className="mapping-table"><div className="mapping-head"><span>Cột trong file</span><span>Trường hệ thống (AI đề xuất)</span><span>Độ tin cậy</span></div>{mappings.map((item) => <div className="mapping-row" key={item.column}><code>{item.column}</code><span className="mapping-field">{item.field}</span><span className={`confidence${item.confidence < 90 ? ' review' : ''}`}><i><b style={{ width: `${item.confidence}%` }} /></i>{item.confidence}%</span></div>)}</div><div className="mapping-actions"><label><input checked={checked} onChange={(event) => onChecked(event.target.checked)} type="checkbox" /> Tôi đã kiểm tra ánh xạ vehicle_type (79%)</label><button disabled={!checked} onClick={onNext} type="button">Xem trước dữ liệu</button></div></section>
+  const [source, setSource] = useState<'log' | 'schedule'>('log')
+  const mappings = source === 'log' ? logMappings : scheduleMappings
+  return <section className="mapping-stage"><h2>AI nhận diện cột</h2><div className="mapping-tabs" role="tablist"><button aria-selected={source === 'log'} onClick={() => setSource('log')} role="tab" type="button">Log quẹt thẻ</button><button aria-selected={source === 'schedule'} onClick={() => setSource('schedule')} role="tab" type="button">Lịch học</button><span className="ai-chip">AI</span></div><div className="mapping-table"><div className="mapping-head"><span>Cột trong file</span><span>Trường hệ thống (AI đề xuất)</span><span>Độ tin cậy</span></div>{mappings.map((item) => <div className="mapping-row" key={item.column}><code>{item.column}</code><span className="mapping-field">{item.field}</span><span className={`confidence${item.confidence < 90 ? ' review' : ''}`}><i><b style={{ width: `${item.confidence}%` }} /></i>{item.confidence}%</span></div>)}</div><div className="mapping-actions">{source === 'log' && <label><input checked={checked} onChange={(event) => onChecked(event.target.checked)} type="checkbox" /> Tôi đã kiểm tra ánh xạ vehicle_type (79%)</label>}<button disabled={source === 'log' && !checked} onClick={onNext} type="button">Xem trước dữ liệu</button></div></section>
 }
 
 function PreviewStep({ onConfirm, confirmed }: { onConfirm: () => void; confirmed: boolean }) {
