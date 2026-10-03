@@ -34,11 +34,20 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class QualityService {
 
-    // ── Ngưỡng: có thể điều chỉnh theo kết quả H14 ───────────────────────────
-    /** raw_count âm dưới ngưỡng này → cờ missing_out. */
+    // ── Ngưỡng (H14: đánh giá sau khi chạy thử đột biến) ────────────────────
+    /**
+     * raw_count âm dưới ngưỡng này → cờ missing_out.
+     * H14: spike 20% tạo ra raw_count khoảng -8 đến -15 trong 15 phút;
+     * ngưỡng -5 phát hiện đúng và không false-positive ở bãi bình thường.
+     * GIỮ NGUYÊN.
+     */
     static final int MISSING_OUT_THRESHOLD = -5;
 
-    /** Số phút không nhận sự kiện trong giờ hoạt động → cờ signal_lost. */
+    /**
+     * Số phút không nhận sự kiện trong giờ hoạt động → cờ signal_lost.
+     * H14: rush-hour có sự kiện mỗi vài giây; 30 phút im là đủ đáng lo.
+     * Ngoài giờ hoạt động kiểm tra tự bỏ qua. GIỮ NGUYÊN.
+     */
     static final int SIGNAL_LOST_MINUTES = 30;
 
     /** Giờ mở cửa hoạt động (bãi được coi là im lặng bất thường khi trong khoảng này). */
