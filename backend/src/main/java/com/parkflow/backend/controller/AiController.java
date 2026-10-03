@@ -3,6 +3,7 @@ package com.parkflow.backend.controller;
 import com.parkflow.backend.ai.AiMode;
 import com.parkflow.backend.ai.AiService;
 import com.parkflow.backend.ai.AiUnavailable;
+import com.parkflow.backend.ai.ColumnMapper;
 import com.parkflow.backend.common.ApiException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -27,6 +28,7 @@ import tools.jackson.databind.JsonNode;
 public class AiController {
     private final AiService ai;
     private final AiMode mode;
+    private final ColumnMapper columns;
 
     @PostMapping("/chat")
     public JsonNode chat(@RequestBody JsonNode body) {
@@ -37,6 +39,17 @@ public class AiController {
         for (JsonNode turn : body.path("history"))
             history.add(new AiService.Turn(turn.path("role").asString(""), turn.path("text").asString("")));
         return ai.chat(question, history);
+    }
+
+    /** Ánh xạ cột tệp người dùng vào trường hệ thống: AI chỉ nhận tên cột và vài giá trị mẫu (không có mã thẻ). */
+    @PostMapping("/map-columns")
+    public JsonNode mapColumns(@RequestBody JsonNode body) {
+        try {
+            return columns.map(body);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "BAD_REQUEST",
+                    "Cần `kind` (swipe_log hoặc schedule) và `columns` gồm 1 đến 40 cột, mỗi cột có `name`.");
+        }
     }
 
     @GetMapping("/mode")
