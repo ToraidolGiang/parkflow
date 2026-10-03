@@ -7,6 +7,9 @@ export type { RequestOptions }
 
 export const mockApiEnabled = () => import.meta.env.VITE_USE_MOCK_API === 'true'
 
+/** Phát khi một lệnh gọi (không phải đăng nhập) trả 401: phiên hết hạn hoặc bị thu hồi, AuthProvider đưa về trang đăng nhập. */
+export const UNAUTHORIZED_EVENT = 'parkflow:unauthorized'
+
 function requestSignal(signal?: AbortSignal) {
   const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   return signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal
@@ -38,6 +41,7 @@ export async function request<T, TFallback = unknown>(
   })
 
   if (!response.ok) {
+    if (response.status === 401 && !url.startsWith('/api/auth/')) window.dispatchEvent(new Event(UNAUTHORIZED_EVENT))
     const problem = await readProblem<TFallback>(response)
     throw new ApiError<TFallback>(
       problem.message ?? `Không thể tải dữ liệu (${response.status})`,

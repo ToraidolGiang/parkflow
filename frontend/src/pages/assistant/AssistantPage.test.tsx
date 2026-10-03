@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { useDashboardOverview } from '../../shared/api/dashboard'
 import { chatWithAssistant } from '../../shared/api/assistant'
+import { getForecastOverview } from '../../shared/api/forecast'
 import { AssistantPage } from './AssistantPage'
 
 vi.mock('../../shared/api/dashboard', () => ({
@@ -11,6 +12,10 @@ vi.mock('../../shared/api/dashboard', () => ({
 
 vi.mock('../../shared/api/assistant', () => ({
   chatWithAssistant: vi.fn(),
+}))
+
+vi.mock('../../shared/api/forecast', () => ({
+  getForecastOverview: vi.fn(),
 }))
 
 const dashboard = {
@@ -35,6 +40,7 @@ const dashboard = {
 }
 
 describe('AssistantPage', () => {
+  const forecast = { points: [{ t: '07:00', forecast: 75 }, { t: '08:00', forecast: 95 }], pendingPlan: { reason: 'Điều hướng sang Nhà xe C2' }, plan: null }
   it('shows an API error when the initial dashboard load fails', () => {
     vi.mocked(useDashboardOverview).mockReturnValue({ data: undefined, error: new Error('offline'), isLoading: false, isRefreshing: false, refresh: vi.fn() })
     render(<MemoryRouter><AssistantPage /></MemoryRouter>)
@@ -59,6 +65,7 @@ describe('AssistantPage', () => {
   it('sends a question to the backend and renders the returned answer', async () => {
     vi.mocked(useDashboardOverview).mockReturnValue({ data: dashboard, error: undefined, isLoading: false, isRefreshing: false, refresh: vi.fn() })
     vi.mocked(chatWithAssistant).mockResolvedValue({ answer: 'Nhà xe C1 còn nhiều chỗ.', facts: [{ label: 'Nhà xe C1', value: '67%' }], suggestions: ['Câu hỏi tiếp theo'], source: 'mock' })
+    vi.mocked(getForecastOverview).mockResolvedValue(forecast as never)
     render(<MemoryRouter><AssistantPage /></MemoryRouter>)
     expect(screen.getByText('Trợ lý AI ParkFlow')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Sáng mai có bãi nào nguy cơ quá tải không?' }))
@@ -66,6 +73,42 @@ describe('AssistantPage', () => {
     expect(await screen.findByText('Nhà xe C1 còn nhiều chỗ.')).toBeInTheDocument()
     expect(chatWithAssistant).toHaveBeenCalledWith('Sáng mai có bãi nào nguy cơ quá tải không?', [], expect.any(AbortSignal))
     expect(screen.getByText('Dữ liệu mẫu')).toBeInTheDocument()
-    expect(screen.getByText(/Nhà xe C1:/)).toBeInTheDocument()
+    expect(screen.getByText('Nhà xe C1')).toBeInTheDocument()
+  })
+
+  it('uses the lot named in the answer instead of always showing the first lot', async () => {
+    vi.mocked(useDashboardOverview).mockReturnValue({ data: dashboard, error: undefined, isLoading: false, isRefreshing: false, refresh: vi.fn() })
+    vi.mocked(chatWithAssistant).mockResolvedValue({ answer: 'Nhà xe B có nguy cơ quá tải.', facts: [{ label: 'Nhà xe B', value: '105%' }], suggestions: [], source: 'mock' })
+    vi.mocked(getForecastOverview).mockResolvedValue(forecast as never)
+    render(<MemoryRouter><AssistantPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('Nhập câu hỏi'), { target: { value: 'Sáng mai bãi nào nguy cơ quá tải?' } })
+    fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
+    await screen.findByText('Nhà xe B có nguy cơ quá tải.')
+    expect(screen.getByRole('heading', { name: /Dự báo Nhà xe B/ })).toBeInTheDocument()
+  })
+
+  it('does not show a fixed proposal when the answer has no operational proposal', async () => {
+    vi.mocked(useDashboardOverview).mockReturnValue({ data: dashboard, error: undefined, isLoading: false, isRefreshing: false, refresh: vi.fn() })
+    vi.mocked(chatWithAssistant).mockResolvedValue({ answer: 'Hiện chưa có đề xuất.', facts: [], suggestions: [], source: 'mock' })
+    vi.mocked(getForecastOverview).mockResolvedValue({ ...forecast, pendingPlan: null, plan: null } as never)
+    render(<MemoryRouter><AssistantPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('Nhập câu hỏi'), { target: { value: 'Cho tôi số liệu hiện tại.' } })
+    fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
+    await screen.findByText('Hiện chưa có đề xuất.')
+    expect(screen.queryByText(/Điều hướng 85 xe khỏi Bãi A/)).not.toBeInTheDocument()
+  })
+
+  it('renders forecast thresholds and a Vietnamese legend for the asked lot', async () => {
+    vi.mocked(useDashboardOverview).mockReturnValue({ data: dashboard, error: undefined, isLoading: false, isRefreshing: false, refresh: vi.fn() })
+    vi.mocked(chatWithAssistant).mockResolvedValue({ answer: 'Dự báo Nhà xe C1 ở mức an toàn.', facts: [{ label: 'Nhà xe C1', value: '67%' }], suggestions: [], source: 'mock' })
+    vi.mocked(getForecastOverview).mockResolvedValue(forecast as never)
+    render(<MemoryRouter><AssistantPage /></MemoryRouter>)
+    fireEvent.change(screen.getByLabelText('Nhập câu hỏi'), { target: { value: 'Nhà xe C1 hiện thế nào?' } })
+    fireEvent.submit(screen.getByLabelText('Nhập câu hỏi').closest('form')!)
+    await screen.findByText('Dự báo Nhà xe C1 ở mức an toàn.')
+    expect(screen.getByText(/80%/)).toBeInTheDocument()
+    expect(screen.getByText(/100%/)).toBeInTheDocument()
+    expect(screen.getByText(/120%/)).toBeInTheDocument()
+    expect(screen.getByText(/Sắp đầy/)).toBeInTheDocument()
   })
 })

@@ -10,10 +10,12 @@ export type AssistantChatResponse = {
   source: AssistantSource
 }
 
-export function chatWithAssistant(question: string, history: AssistantTurn[], signal?: AbortSignal) {
+export type AssistantContext = { role?: 'guard' | 'manager' }
+
+export function chatWithAssistant(question: string, history: AssistantTurn[], signal?: AbortSignal, context?: AssistantContext) {
   return request<AssistantChatResponse>('/api/ai/chat', {
     method: 'POST',
-    body: { question, history },
+    body: { question, history, ...context },
     signal,
   })
 }
