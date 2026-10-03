@@ -1,11 +1,35 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import dashboard from '../mock/dashboard-overview.json'
 import type { CampusConfig } from '../types/campus'
 import type { LotStatus } from '../types/dashboard'
 import { CampusMap } from './CampusMap'
 
 describe('CampusMap variants', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('keeps the canonical HUCE roads and courtyard when API geometry is partial', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        school: 'HUCE', thresholds: {}, routes: [], map: { width: 1000, height: 700 },
+        buildings: [],
+        gates: [{ id: 'MAIN', name: 'Cổng API' }],
+        lots: [{ id: 'A', name: 'Tên bãi từ API', capacity: 1450, gate: 'MAIN', near: 'G3' }],
+      }),
+    }))
+    const huceLots: LotStatus[] = [
+      { lotId: 'A', name: 'A', current: 10, capacity: 1450, percentage: 1, gate: 'MAIN', nearby: 'G3', status: 'available' },
+      { lotId: 'C1', name: 'C1', current: 10, capacity: 300, percentage: 3, gate: 'EAST', nearby: 'H3', status: 'available' },
+    ]
+
+    render(<CampusMap lots={huceLots} />)
+
+    expect(screen.getByRole('img', { name: 'Sơ đồ khuôn viên HUCE minh họa' })).toBeInTheDocument()
+    expect(screen.getByText('SÂN TRƯỜNG')).toBeInTheDocument()
+    expect(screen.getByTestId('huce-road-0')).toBeInTheDocument()
+    expect(await screen.findByText('Tên bãi từ API')).toBeInTheDocument()
+  })
   it('renders the student route from the same shared map component', () => {
     render(<CampusMap highlightedLotId="C" lots={dashboard.lots as LotStatus[]} showRoute variant="student" />)
     expect(screen.getByLabelText('Sơ đồ khuôn viên')).toHaveClass('sv-map')

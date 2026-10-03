@@ -1,0 +1,31 @@
+{
+  "buildings": [
+    { "id": "H1", "name": "H1", "svg": [200, 490], "footprint": { "x": 135, "y": 310, "width": 130, "height": 360 } },
+    { "id": "H2", "name": "H2", "svg": [592, 432], "footprint": { "x": 539.5, "y": 294.5, "width": 105, "height": 275 } },
+    { "id": "H3", "name": "H3", "svg": [195, 180], "footprint": { "x": 122.5, "y": 125, "width": 145, "height": 110 } },
+    { "id": "G3", "name": "G3", "svg": [435, 370], "footprint": { "x": 350, "y": 302.5, "width": 170, "height": 135 } },
+    { "id": "A1", "name": "A1", "svg": [190, 810], "footprint": { "x": 125, "y": 750, "width": 130, "height": 120 } },
+    { "id": "A2", "name": "A2", "svg": [435, 790], "footprint": { "x": 350, "y": 727.5, "width": 170, "height": 125 } },
+    { "id": "TV", "name": "Thư viện", "svg": [592, 660], "footprint": { "x": 539.5, "y": 592.5, "width": 105, "height": 135 } },
+    { "id": "TN", "name": "Thí nghiệm", "svg": [405, 170], "footprint": { "x": 340, "y": 115, "width": 130, "height": 110 } }
+  ],
+  "lots": [
+    { "id": "A", "name": "Nhà xe hầm 1 sau G3", "svg": [390, 260] },
+    { "id": "B", "name": "Nhà xe hầm 2 sau G3", "svg": [470, 260] },
+    { "id": "C1", "name": "Nhà xe C1 gần H3", "svg": [195, 75] },
+    { "id": "C2", "name": "Nhà xe C2 gần H3", "svg": [75, 385] }
+  ],
+  "gates": [
+    { "id": "MAIN", "name": "Cổng Giải Phóng", "svg": [330, 905] },
+    { "id": "EAST", "name": "Cổng Trần Đại Nghĩa", "svg": [520, 65] }
+  ],
+  "map": {
+    "viewBox": [0, 0, 720, 960],
+    "roads": [
+      [[330, 905], [330, 260], [520, 260], [520, 65]],
+      [[75, 440], [75, 260], [330, 260]],
+      [[75, 260], [75, 75], [195, 75]]
+    ],
+    "courtyard": { "x": 365, "y": 470, "width": 135, "height": 180 }
+  }
+}
