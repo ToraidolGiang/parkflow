@@ -17,7 +17,7 @@ import tools.jackson.databind.node.ObjectNode;
 @Slf4j
 @Service
 public class AiService {
-    static final int MAX_QUESTION = 500;
+    public static final int MAX_QUESTION = 500;
     static final String CHAT_SYSTEM = """
             Bạn là trợ lý điều phối bãi xe ParkFlow của trường đại học. Trả lời bằng tiếng Việt, ngắn gọn, cho ban quản trị và tổ bảo vệ.
             Chỉ dùng số liệu trong FACTS. Không tự tính thêm, không bịa số. Nếu FACTS không có thông tin, nói rõ là chưa có dữ liệu.
@@ -59,6 +59,11 @@ public class AiService {
         user.append("\nCÂU HỎI: ").append(question.strip());
 
         ObjectNode result = run(CHAT_SYSTEM, user.toString(), AiService::validChat, () -> withSource(mock.chat(data), MockAi.SOURCE));
+        if (!MockAi.SOURCE.equals(result.path("source").asString()) && !NumberGuard.onlyKnownPercentages(result.path("answer").asString(), data)) {
+            log.warn("AI {} nêu phần trăm không có trong số liệu: thay bằng câu trả lời dữ liệu mẫu", result.path("source").asString());
+            result = withSource(mock.chat(data), MockAi.SOURCE);
+            result.put("guarded", true);
+        }
         if (!result.has("facts")) result.putArray("facts");
         if (!result.has("suggestions")) result.putArray("suggestions");
         return result;

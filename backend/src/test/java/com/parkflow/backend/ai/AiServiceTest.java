@@ -22,7 +22,9 @@ class AiServiceTest {
     private static final String GOOD = "{\"answer\":\"Bãi A 113%. Cần quản trị duyệt.\",\"facts\":[{\"label\":\"Bãi A\",\"value\":\"113%\"}],\"suggestions\":[\"Hỏi thêm\"]}";
 
     @BeforeEach void setup() {
-        when(facts.build()).thenReturn(mapper.createObjectNode().put("asOf", "2026-10-03T07:20:00+07:00"));
+        var data = mapper.createObjectNode().put("asOf", "2026-10-03T07:20:00+07:00");
+        data.putArray("forecastPeaks").addObject().put("lotId", "A").put("time", "07:45").put("pct", 113.0);
+        when(facts.build()).thenReturn(data);
     }
 
     private static class Fake implements AiClient {
@@ -84,6 +86,14 @@ class AiServiceTest {
         var result = service(groq).chat("Câu hỏi", null);
         assertEquals("mock", result.path("source").asText());
         assertEquals(0, groq.calls.get());
+    }
+
+    @Test void aReplyWithAPercentageNotInTheFactsIsReplacedByTheMockAnswer() {
+        var groq = new Fake("groq", true, () -> "{\"answer\":\"Bãi A sẽ đạt 140%.\"}");
+        var result = service(groq).chat("Câu hỏi", null);
+        assertEquals("mock", result.path("source").asText());
+        assertTrue(result.path("guarded").asBoolean());
+        assertTrue(!result.path("answer").asText().contains("140"));
     }
 
     @Test void anEmptyOrOverlongQuestionIsRejected() {
