@@ -21,6 +21,8 @@ services:
       retries: 20
 
   backend:
+    # Thẻ ảnh theo mã bản phát hành để quay lại bản trước vẫn dùng đúng ảnh của bản đó.
+    image: parkflow-thi-backend:${RELEASE_ID:-local}
     build:
       context: ..
       dockerfile: deploy/Dockerfile.backend
@@ -47,6 +49,7 @@ services:
       start_period: 40s
 
   web:
+    image: parkflow-thi-web:${RELEASE_ID:-local}
     build:
       context: ..
       dockerfile: deploy/Dockerfile.web
@@ -57,8 +60,8 @@ services:
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
     ports:
-      - "${HTTP_PORT:-80}:80"
-      - "${HTTPS_PORT:-443}:443"
+      - "${HTTP_BIND:-0.0.0.0}:${HTTP_PORT:-80}:80"
+      - "${HTTP_BIND:-0.0.0.0}:${HTTPS_PORT:-443}:443"
     volumes:
       - caddydata:/data
       - caddyconfig:/config
