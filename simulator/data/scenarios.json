@@ -1,0 +1,174 @@
+{
+  "2026-08-17": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-18": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-19": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-20": {
+    "label": "Ngày mưa lớn",
+    "kind": "rain"
+  },
+  "2026-08-21": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-22": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-24": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-25": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-26": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-27": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-28": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-29": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-08-31": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-01": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-02": {
+    "label": "Nghỉ lễ Quốc Khánh",
+    "kind": "holiday"
+  },
+  "2026-09-03": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-04": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-05": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-07": {
+    "label": "Tuần thi giữa kỳ",
+    "kind": "exam"
+  },
+  "2026-09-08": {
+    "label": "Tuần thi giữa kỳ",
+    "kind": "exam"
+  },
+  "2026-09-09": {
+    "label": "Tuần thi giữa kỳ",
+    "kind": "exam"
+  },
+  "2026-09-10": {
+    "label": "Tuần thi giữa kỳ",
+    "kind": "exam"
+  },
+  "2026-09-11": {
+    "label": "Tuần thi giữa kỳ",
+    "kind": "exam"
+  },
+  "2026-09-12": {
+    "label": "Tuần thi giữa kỳ",
+    "kind": "exam"
+  },
+  "2026-09-14": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-15": {
+    "label": "Ngày mưa lớn",
+    "kind": "rain"
+  },
+  "2026-09-16": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-17": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-18": {
+    "label": "Lịch học dày đặc",
+    "kind": "heavy_schedule"
+  },
+  "2026-09-19": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-21": {
+    "label": "Ngày thường",
+    "kind": "normal"
+  },
+  "2026-09-22": {
+    "label": "Ngày thường (Mẫu)",
+    "kind": "normal"
+  },
+  "2026-09-23": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-09-24": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-09-25": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-09-26": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-09-27": {
+    "label": "Chủ nhật nghỉ (mô phỏng)",
+    "kind": "holiday"
+  },
+  "2026-09-28": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-09-29": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-09-30": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-10-01": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-10-02": {
+    "label": "Ngày thường (mô phỏng bổ sung)",
+    "kind": "normal"
+  },
+  "2026-10-03": {
+    "label": "Ngày thi 03/10 (mô phỏng thứ Bảy)",
+    "kind": "normal"
+  }
+}

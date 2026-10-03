@@ -1,0 +1,827 @@
+{
+  "school": "Trường Đại học Xây dựng Hà Nội",
+  "totalStudents": 12000,
+  "motorbikeRatio": 0.65,
+  "openHours": {
+    "open": "06:00",
+    "close": "22:00"
+  },
+  "overnightMaxPct": 5,
+  "thresholds": {
+    "yellow": 0.8,
+    "warn": 0.9,
+    "over": 1,
+    "target": 0.96,
+    "targetMax": 1,
+    "ceiling": 1.2
+  },
+  "gates": [
+    {
+      "id": "MAIN",
+      "code": "G1",
+      "name": "Cổng Giải Phóng",
+      "normalOpen": "06:00",
+      "capacityPer15": 200,
+      "lat": null,
+      "lng": null,
+      "svg": [
+        330,
+        905
+      ]
+    },
+    {
+      "id": "EAST",
+      "code": "G2",
+      "name": "Cổng Trần Đại Nghĩa",
+      "normalOpen": "07:00",
+      "capacityPer15": 200,
+      "lat": null,
+      "lng": null,
+      "svg": [
+        520,
+        65
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "H1",
+      "name": "H1",
+      "teaching": true,
+      "svg": [
+        200,
+        490
+      ],
+      "nearLot": "A",
+      "footprint": {
+        "x": 135,
+        "y": 310,
+        "width": 130,
+        "height": 360
+      }
+    },
+    {
+      "id": "H2",
+      "name": "H2",
+      "teaching": true,
+      "svg": [
+        592,
+        432
+      ],
+      "nearLot": "B",
+      "footprint": {
+        "x": 539.5,
+        "y": 294.5,
+        "width": 105,
+        "height": 275
+      }
+    },
+    {
+      "id": "H3",
+      "name": "H3",
+      "teaching": true,
+      "svg": [
+        195,
+        180
+      ],
+      "nearLot": "C1",
+      "footprint": {
+        "x": 122.5,
+        "y": 125,
+        "width": 145,
+        "height": 110
+      }
+    },
+    {
+      "id": "G3",
+      "name": "G3",
+      "teaching": true,
+      "svg": [
+        435,
+        370
+      ],
+      "nearLot": "A",
+      "footprint": {
+        "x": 350,
+        "y": 302.5,
+        "width": 170,
+        "height": 135
+      }
+    },
+    {
+      "id": "A1",
+      "name": "A1",
+      "teaching": true,
+      "svg": [
+        190,
+        810
+      ],
+      "nearLot": "A",
+      "footprint": {
+        "x": 125,
+        "y": 750,
+        "width": 130,
+        "height": 120
+      }
+    },
+    {
+      "id": "A2",
+      "name": "A2",
+      "teaching": true,
+      "svg": [
+        435,
+        790
+      ],
+      "nearLot": "B",
+      "footprint": {
+        "x": 350,
+        "y": 727.5,
+        "width": 170,
+        "height": 125
+      }
+    },
+    {
+      "id": "TV",
+      "name": "Thư viện",
+      "teaching": false,
+      "svg": [
+        592,
+        660
+      ],
+      "nearLot": "B",
+      "footprint": {
+        "x": 539.5,
+        "y": 592.5,
+        "width": 105,
+        "height": 135
+      }
+    },
+    {
+      "id": "TN",
+      "name": "Thí nghiệm",
+      "teaching": true,
+      "svg": [
+        405,
+        170
+      ],
+      "nearLot": "C1",
+      "footprint": {
+        "x": 340,
+        "y": 115,
+        "width": 130,
+        "height": 110
+      }
+    }
+  ],
+  "lots": [
+    {
+      "id": "A",
+      "name": "Nhà xe hầm 1 sau G3",
+      "type": "underground",
+      "capacity": 1450,
+      "max": 1740,
+      "gate": "MAIN",
+      "gateShare": {
+        "MAIN": 0.7,
+        "EAST": 0.3
+      },
+      "near": "G3",
+      "alternates": [
+        "B",
+        "C1",
+        "C2"
+      ],
+      "svg": [
+        390,
+        260
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Nhà xe hầm 2 sau G3",
+      "type": "underground",
+      "capacity": 1450,
+      "max": 1740,
+      "gate": "EAST",
+      "gateShare": {
+        "MAIN": 0.3,
+        "EAST": 0.7
+      },
+      "near": "G3",
+      "alternates": [
+        "C1",
+        "C2"
+      ],
+      "svg": [
+        470,
+        260
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "Nhà xe C1 gần H3",
+      "type": "surface",
+      "capacity": 300,
+      "max": 360,
+      "gate": "EAST",
+      "gateShare": {
+        "MAIN": 0.2,
+        "EAST": 0.8
+      },
+      "near": "H3",
+      "alternates": [
+        "B"
+      ],
+      "svg": [
+        195,
+        75
+      ],
+      "facilityCount": 1
+    },
+    {
+      "id": "C2",
+      "name": "Nhà xe C2 gần H3",
+      "type": "surface",
+      "capacity": 300,
+      "max": 360,
+      "gate": "EAST",
+      "gateShare": {
+        "MAIN": 0.2,
+        "EAST": 0.8
+      },
+      "near": "H3",
+      "alternates": [
+        "B"
+      ],
+      "svg": [
+        75,
+        385
+      ],
+      "facilityCount": 1
+    }
+  ],
+  "routes": [
+    {
+      "gate": "MAIN",
+      "lot": "A",
+      "status": "illustrative",
+      "path": [
+        [
+          330,
+          905
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          390,
+          260
+        ]
+      ],
+      "steps": [
+        "Vào cổng Giải Phóng, đi theo trục đường giữa H1 và A2.",
+        "Đến lối xuống hầm phía sau G3.",
+        "Đến Nhà xe hầm 1 sau G3."
+      ],
+      "walkMinutes": {
+        "H1": 3,
+        "H2": 3,
+        "H3": 4,
+        "G3": 2,
+        "A1": 6,
+        "A2": 5,
+        "TV": 5,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "MAIN",
+      "lot": "B",
+      "status": "illustrative",
+      "path": [
+        [
+          330,
+          905
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          470,
+          260
+        ]
+      ],
+      "steps": [
+        "Vào cổng Giải Phóng, đi theo trục đường giữa H1 và A2.",
+        "Đến lối xuống hầm phía sau G3.",
+        "Đến Nhà xe hầm 2 sau G3."
+      ],
+      "walkMinutes": {
+        "H1": 4,
+        "H2": 2,
+        "H3": 5,
+        "G3": 2,
+        "A1": 7,
+        "A2": 5,
+        "TV": 4,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "MAIN",
+      "lot": "C1",
+      "status": "illustrative",
+      "path": [
+        [
+          330,
+          905
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          75,
+          260
+        ],
+        [
+          75,
+          75
+        ],
+        [
+          195,
+          75
+        ]
+      ],
+      "steps": [
+        "Vào cổng Giải Phóng, đi theo trục đường giữa H1 và A2.",
+        "Đi theo đường ngang phía dưới H3, vòng bên trái H3 rồi rẽ vào nhà xe C1 phía trên H3.",
+        "Đến Nhà xe C1 gần H3."
+      ],
+      "walkMinutes": {
+        "H1": 3,
+        "H2": 6,
+        "H3": 1,
+        "G3": 4,
+        "A1": 7,
+        "A2": 7,
+        "TV": 8,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "MAIN",
+      "lot": "C2",
+      "status": "illustrative",
+      "path": [
+        [
+          330,
+          905
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          75,
+          260
+        ],
+        [
+          75,
+          385
+        ]
+      ],
+      "steps": [
+        "Vào cổng Giải Phóng, đi theo trục đường giữa H1 và A2.",
+        "Rẽ về phía bên trái nhà H3 theo sơ đồ.",
+        "Đến Nhà xe C2 gần H3."
+      ],
+      "walkMinutes": {
+        "H1": 3,
+        "H2": 6,
+        "H3": 1,
+        "G3": 4,
+        "A1": 7,
+        "A2": 7,
+        "TV": 8,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "EAST",
+      "lot": "A",
+      "status": "illustrative",
+      "path": [
+        [
+          520,
+          65
+        ],
+        [
+          520,
+          260
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          390,
+          260
+        ]
+      ],
+      "steps": [
+        "Vào cổng Trần Đại Nghĩa, đi qua phía nhà Thí nghiệm.",
+        "Đến lối xuống hầm phía sau G3.",
+        "Đến Nhà xe hầm 1 sau G3."
+      ],
+      "walkMinutes": {
+        "H1": 3,
+        "H2": 3,
+        "H3": 4,
+        "G3": 2,
+        "A1": 6,
+        "A2": 5,
+        "TV": 5,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "EAST",
+      "lot": "B",
+      "status": "illustrative",
+      "path": [
+        [
+          520,
+          65
+        ],
+        [
+          520,
+          260
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          470,
+          260
+        ]
+      ],
+      "steps": [
+        "Vào cổng Trần Đại Nghĩa, đi qua phía nhà Thí nghiệm.",
+        "Đến lối xuống hầm phía sau G3.",
+        "Đến Nhà xe hầm 2 sau G3."
+      ],
+      "walkMinutes": {
+        "H1": 4,
+        "H2": 2,
+        "H3": 5,
+        "G3": 2,
+        "A1": 7,
+        "A2": 5,
+        "TV": 4,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "EAST",
+      "lot": "C1",
+      "status": "illustrative",
+      "path": [
+        [
+          520,
+          65
+        ],
+        [
+          520,
+          260
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          75,
+          260
+        ],
+        [
+          75,
+          75
+        ],
+        [
+          195,
+          75
+        ]
+      ],
+      "steps": [
+        "Vào cổng Trần Đại Nghĩa, đi qua phía nhà Thí nghiệm.",
+        "Đi theo đường ngang phía dưới H3, vòng bên trái H3 rồi rẽ vào nhà xe C1 phía trên H3.",
+        "Đến Nhà xe C1 gần H3."
+      ],
+      "walkMinutes": {
+        "H1": 3,
+        "H2": 6,
+        "H3": 1,
+        "G3": 4,
+        "A1": 7,
+        "A2": 7,
+        "TV": 8,
+        "TN": 3
+      }
+    },
+    {
+      "gate": "EAST",
+      "lot": "C2",
+      "status": "illustrative",
+      "path": [
+        [
+          520,
+          65
+        ],
+        [
+          520,
+          260
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          75,
+          260
+        ],
+        [
+          75,
+          385
+        ]
+      ],
+      "steps": [
+        "Vào cổng Trần Đại Nghĩa, đi qua phía nhà Thí nghiệm.",
+        "Rẽ về phía bên trái nhà H3 theo sơ đồ.",
+        "Đến Nhà xe C2 gần H3."
+      ],
+      "walkMinutes": {
+        "H1": 3,
+        "H2": 6,
+        "H3": 1,
+        "G3": 4,
+        "A1": 7,
+        "A2": 7,
+        "TV": 8,
+        "TN": 3
+      }
+    }
+  ],
+  "timezone": "Asia/Ho_Chi_Minh",
+  "dataSource": "synthetic",
+  "mapStatus": "Sơ đồ tương đối theo ảnh người dùng cung cấp; hai hầm phía sau G3, nhà xe thứ ba gần H3. Chưa khảo sát lối xuống hầm, GPS và thời gian đi bộ.",
+  "sessions": {
+    "source": "user-confirmed",
+    "periodMinutes": 50,
+    "breakMinutes": 5,
+    "shifts": [
+      {
+        "id": 1,
+        "name": "Ca 1",
+        "startTime": "06:30",
+        "endTime": "09:10",
+        "breakAfterMinutes": 15,
+        "periods": [
+          {
+            "number": 1,
+            "startTime": "06:30",
+            "endTime": "07:20"
+          },
+          {
+            "number": 2,
+            "startTime": "07:25",
+            "endTime": "08:15"
+          },
+          {
+            "number": 3,
+            "startTime": "08:20",
+            "endTime": "09:10"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Ca 2",
+        "startTime": "09:25",
+        "endTime": "12:05",
+        "breakAfterMinutes": 25,
+        "periods": [
+          {
+            "number": 4,
+            "startTime": "09:25",
+            "endTime": "10:15"
+          },
+          {
+            "number": 5,
+            "startTime": "10:20",
+            "endTime": "11:10"
+          },
+          {
+            "number": 6,
+            "startTime": "11:15",
+            "endTime": "12:05"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Ca 3",
+        "startTime": "12:30",
+        "endTime": "15:10",
+        "breakAfterMinutes": 15,
+        "periods": [
+          {
+            "number": 7,
+            "startTime": "12:30",
+            "endTime": "13:20"
+          },
+          {
+            "number": 8,
+            "startTime": "13:25",
+            "endTime": "14:15"
+          },
+          {
+            "number": 9,
+            "startTime": "14:20",
+            "endTime": "15:10"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "name": "Ca 4",
+        "startTime": "15:25",
+        "endTime": "18:05",
+        "breakAfterMinutes": 40,
+        "periods": [
+          {
+            "number": 10,
+            "startTime": "15:25",
+            "endTime": "16:15"
+          },
+          {
+            "number": 11,
+            "startTime": "16:20",
+            "endTime": "17:10"
+          },
+          {
+            "number": 12,
+            "startTime": "17:15",
+            "endTime": "18:05"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "name": "Ca 5",
+        "startTime": "18:45",
+        "endTime": "21:25",
+        "breakAfterMinutes": null,
+        "periods": [
+          {
+            "number": 13,
+            "startTime": "18:45",
+            "endTime": "19:35"
+          },
+          {
+            "number": 14,
+            "startTime": "19:40",
+            "endTime": "20:30"
+          },
+          {
+            "number": 15,
+            "startTime": "20:35",
+            "endTime": "21:25"
+          }
+        ]
+      }
+    ]
+  },
+  "map": {
+    "viewBox": [
+      0,
+      0,
+      720,
+      960
+    ],
+    "roads": [
+      [
+        [
+          330,
+          905
+        ],
+        [
+          330,
+          260
+        ],
+        [
+          520,
+          260
+        ],
+        [
+          520,
+          65
+        ]
+      ],
+      [
+        [
+          75,
+          440
+        ],
+        [
+          75,
+          260
+        ],
+        [
+          330,
+          260
+        ]
+      ],
+      [
+        [
+          75,
+          260
+        ],
+        [
+          75,
+          75
+        ],
+        [
+          195,
+          75
+        ]
+      ]
+    ],
+    "courtyard": {
+      "x": 365,
+      "y": 470,
+      "width": 135,
+      "height": 180
+    }
+  },
+  "assumptions": [
+    "Sức chứa, số sinh viên, tỷ lệ phương tiện, giờ mở cổng và gateShare là số mô phỏng, chưa phải số liệu do trường xác nhận.",
+    "Hai hầm phía sau G3 theo xác nhận người dùng; điểm xuống hầm và tuyến xe là minh họa.",
+    "nearLot và phút đi bộ là giả định cho demo."
+  ],
+  "capacitySource": {
+    "type": "user-estimate",
+    "underground": "Mỗi hầm A/B dưới 1.500 xe; hai hầm tổng gần 3.000 xe.",
+    "nearH3": "Hai nhà xe C1/C2 gần H3, tổng khoảng 600 xe.",
+    "simulationChoice": "A/B 1.450 xe mỗi hầm, tổng 2.900; C1/C2 tạm chia đều 300 xe mỗi nhà theo xác nhận người dùng. Vị trí từng nhà xe chỉ minh họa.",
+    "maxNote": "max là ngưỡng mô phỏng 120% phục vụ cảnh báo, không phải sức chứa thực tế được xác nhận."
+  },
+  "studentCountSource": {
+    "type": "user-estimate",
+    "description": "Quy mô 5.000 sinh viên theo yêu cầu người dùng; không đồng nghĩa 5.000 xe có mặt đồng thời."
+  },
+  "sampleScenarios": [
+    {
+      "date": "2026-09-01",
+      "label": "Hầm A đầy",
+      "counts": {
+        "A": 1450,
+        "B": 1000,
+        "C1": 240,
+        "C2": 220
+      }
+    },
+    {
+      "date": "2026-09-08",
+      "label": "Hầm B và C1 đầy",
+      "counts": {
+        "A": 1250,
+        "B": 1450,
+        "C1": 300,
+        "C2": 240
+      }
+    },
+    {
+      "date": "2026-09-15",
+      "label": "A và C1 quá tải",
+      "counts": {
+        "A": 1500,
+        "B": 1300,
+        "C1": 320,
+        "C2": 280
+      }
+    },
+    {
+      "date": "2026-09-16",
+      "label": "Cả bốn nhà xe quá tải",
+      "counts": {
+        "A": 1520,
+        "B": 1470,
+        "C1": 320,
+        "C2": 320
+      }
+    }
+  ]
+}

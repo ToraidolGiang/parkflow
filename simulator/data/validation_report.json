@@ -1,0 +1,575 @@
+{
+  "source": "synthetic",
+  "schemaVersion": 2,
+  "demoDate": "2026-10-03",
+  "demoAsOf": "2026-10-03 07:30:00",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "seed": "parkflow-exam-2026-10-03-v1",
+  "demoOpenSessionNote": "Blank ts_out means no observed exit by 07:30; it is not necessarily a data-quality error.",
+  "method": "Resample original same-weekday normal sessions; volume 96–104%, demo 104%; shift both timestamps by at most 180 seconds within opening hours; preserve missing exits; regenerate synthetic card hashes.",
+  "capacities": {
+    "A": 1450,
+    "B": 1450,
+    "C1": 300,
+    "C2": 300
+  },
+  "originalHistoryPreservedThrough": "2026-09-22",
+  "addedHistoricalSessions": 66257,
+  "historical": {
+    "sessions": 319171,
+    "events": 634002,
+    "missingOut": 4340,
+    "firstDate": "2026-08-17",
+    "lastDate": "2026-10-02",
+    "daily": [
+      {
+        "date": "2026-08-17",
+        "sessions": 9623,
+        "missingOut": 117,
+        "peak": {
+          "A": 1786,
+          "B": 1252,
+          "C1": 318,
+          "C2": 292
+        }
+      },
+      {
+        "date": "2026-08-18",
+        "sessions": 7912,
+        "missingOut": 105,
+        "peak": {
+          "A": 1511,
+          "B": 1073,
+          "C1": 258,
+          "C2": 255
+        }
+      },
+      {
+        "date": "2026-08-19",
+        "sessions": 8545,
+        "missingOut": 108,
+        "peak": {
+          "A": 1581,
+          "B": 1092,
+          "C1": 273,
+          "C2": 250
+        }
+      },
+      {
+        "date": "2026-08-20",
+        "sessions": 5404,
+        "missingOut": 69,
+        "peak": {
+          "A": 819,
+          "B": 768,
+          "C1": 205,
+          "C2": 187
+        }
+      },
+      {
+        "date": "2026-08-21",
+        "sessions": 5474,
+        "missingOut": 70,
+        "peak": {
+          "A": 798,
+          "B": 747,
+          "C1": 201,
+          "C2": 194
+        }
+      },
+      {
+        "date": "2026-08-22",
+        "sessions": 6511,
+        "missingOut": 82,
+        "peak": {
+          "A": 965,
+          "B": 911,
+          "C1": 236,
+          "C2": 222
+        }
+      },
+      {
+        "date": "2026-08-24",
+        "sessions": 8838,
+        "missingOut": 116,
+        "peak": {
+          "A": 1591,
+          "B": 1118,
+          "C1": 281,
+          "C2": 257
+        }
+      },
+      {
+        "date": "2026-08-25",
+        "sessions": 9580,
+        "missingOut": 128,
+        "peak": {
+          "A": 1888,
+          "B": 1343,
+          "C1": 323,
+          "C2": 298
+        }
+      },
+      {
+        "date": "2026-08-26",
+        "sessions": 8423,
+        "missingOut": 122,
+        "peak": {
+          "A": 1625,
+          "B": 1157,
+          "C1": 290,
+          "C2": 269
+        }
+      },
+      {
+        "date": "2026-08-27",
+        "sessions": 6511,
+        "missingOut": 70,
+        "peak": {
+          "A": 1003,
+          "B": 916,
+          "C1": 249,
+          "C2": 238
+        }
+      },
+      {
+        "date": "2026-08-28",
+        "sessions": 6468,
+        "missingOut": 85,
+        "peak": {
+          "A": 964,
+          "B": 899,
+          "C1": 239,
+          "C2": 220
+        }
+      },
+      {
+        "date": "2026-08-29",
+        "sessions": 5650,
+        "missingOut": 63,
+        "peak": {
+          "A": 838,
+          "B": 786,
+          "C1": 204,
+          "C2": 197
+        }
+      },
+      {
+        "date": "2026-08-31",
+        "sessions": 8582,
+        "missingOut": 122,
+        "peak": {
+          "A": 1591,
+          "B": 1142,
+          "C1": 283,
+          "C2": 246
+        }
+      },
+      {
+        "date": "2026-09-01",
+        "sessions": 8106,
+        "missingOut": 116,
+        "peak": {
+          "A": 1554,
+          "B": 1094,
+          "C1": 265,
+          "C2": 241
+        }
+      },
+      {
+        "date": "2026-09-03",
+        "sessions": 5748,
+        "missingOut": 69,
+        "peak": {
+          "A": 851,
+          "B": 786,
+          "C1": 207,
+          "C2": 209
+        }
+      },
+      {
+        "date": "2026-09-04",
+        "sessions": 5997,
+        "missingOut": 72,
+        "peak": {
+          "A": 909,
+          "B": 846,
+          "C1": 223,
+          "C2": 211
+        }
+      },
+      {
+        "date": "2026-09-05",
+        "sessions": 5743,
+        "missingOut": 74,
+        "peak": {
+          "A": 886,
+          "B": 847,
+          "C1": 232,
+          "C2": 211
+        }
+      },
+      {
+        "date": "2026-09-07",
+        "sessions": 13102,
+        "missingOut": 184,
+        "peak": {
+          "A": 1479,
+          "B": 1042,
+          "C1": 266,
+          "C2": 246
+        }
+      },
+      {
+        "date": "2026-09-08",
+        "sessions": 14326,
+        "missingOut": 251,
+        "peak": {
+          "A": 1697,
+          "B": 1219,
+          "C1": 311,
+          "C2": 277
+        }
+      },
+      {
+        "date": "2026-09-09",
+        "sessions": 12524,
+        "missingOut": 197,
+        "peak": {
+          "A": 1460,
+          "B": 1006,
+          "C1": 255,
+          "C2": 254
+        }
+      },
+      {
+        "date": "2026-09-10",
+        "sessions": 9242,
+        "missingOut": 128,
+        "peak": {
+          "A": 886,
+          "B": 863,
+          "C1": 229,
+          "C2": 209
+        }
+      },
+      {
+        "date": "2026-09-11",
+        "sessions": 9252,
+        "missingOut": 127,
+        "peak": {
+          "A": 1030,
+          "B": 967,
+          "C1": 262,
+          "C2": 241
+        }
+      },
+      {
+        "date": "2026-09-12",
+        "sessions": 9891,
+        "missingOut": 154,
+        "peak": {
+          "A": 1078,
+          "B": 1001,
+          "C1": 267,
+          "C2": 256
+        }
+      },
+      {
+        "date": "2026-09-14",
+        "sessions": 8745,
+        "missingOut": 112,
+        "peak": {
+          "A": 1650,
+          "B": 1143,
+          "C1": 279,
+          "C2": 258
+        }
+      },
+      {
+        "date": "2026-09-15",
+        "sessions": 7267,
+        "missingOut": 95,
+        "peak": {
+          "A": 1316,
+          "B": 913,
+          "C1": 227,
+          "C2": 214
+        }
+      },
+      {
+        "date": "2026-09-16",
+        "sessions": 8875,
+        "missingOut": 117,
+        "peak": {
+          "A": 1724,
+          "B": 1209,
+          "C1": 285,
+          "C2": 262
+        }
+      },
+      {
+        "date": "2026-09-17",
+        "sessions": 6251,
+        "missingOut": 84,
+        "peak": {
+          "A": 940,
+          "B": 866,
+          "C1": 226,
+          "C2": 219
+        }
+      },
+      {
+        "date": "2026-09-18",
+        "sessions": 6546,
+        "missingOut": 93,
+        "peak": {
+          "A": 984,
+          "B": 922,
+          "C1": 232,
+          "C2": 240
+        }
+      },
+      {
+        "date": "2026-09-19",
+        "sessions": 5775,
+        "missingOut": 71,
+        "peak": {
+          "A": 884,
+          "B": 823,
+          "C1": 228,
+          "C2": 204
+        }
+      },
+      {
+        "date": "2026-09-21",
+        "sessions": 9178,
+        "missingOut": 143,
+        "peak": {
+          "A": 1682,
+          "B": 1177,
+          "C1": 287,
+          "C2": 261
+        }
+      },
+      {
+        "date": "2026-09-22",
+        "sessions": 8825,
+        "missingOut": 122,
+        "peak": {
+          "A": 1754,
+          "B": 1212,
+          "C1": 302,
+          "C2": 262
+        }
+      },
+      {
+        "date": "2026-09-23",
+        "sessions": 9142,
+        "missingOut": 119,
+        "peak": {
+          "A": 1773,
+          "B": 1247,
+          "C1": 292,
+          "C2": 264
+        }
+      },
+      {
+        "date": "2026-09-24",
+        "sessions": 6601,
+        "missingOut": 70,
+        "peak": {
+          "A": 1020,
+          "B": 927,
+          "C1": 255,
+          "C2": 241
+        }
+      },
+      {
+        "date": "2026-09-25",
+        "sessions": 6641,
+        "missingOut": 88,
+        "peak": {
+          "A": 989,
+          "B": 924,
+          "C1": 245,
+          "C2": 225
+        }
+      },
+      {
+        "date": "2026-09-26",
+        "sessions": 5869,
+        "missingOut": 73,
+        "peak": {
+          "A": 910,
+          "B": 838,
+          "C1": 228,
+          "C2": 206
+        }
+      },
+      {
+        "date": "2026-09-28",
+        "sessions": 9058,
+        "missingOut": 142,
+        "peak": {
+          "A": 1658,
+          "B": 1164,
+          "C1": 284,
+          "C2": 259
+        }
+      },
+      {
+        "date": "2026-09-29",
+        "sessions": 8039,
+        "missingOut": 115,
+        "peak": {
+          "A": 1530,
+          "B": 1076,
+          "C1": 264,
+          "C2": 240
+        }
+      },
+      {
+        "date": "2026-09-30",
+        "sessions": 8334,
+        "missingOut": 105,
+        "peak": {
+          "A": 1547,
+          "B": 1068,
+          "C1": 272,
+          "C2": 245
+        }
+      },
+      {
+        "date": "2026-10-01",
+        "sessions": 6360,
+        "missingOut": 87,
+        "peak": {
+          "A": 959,
+          "B": 878,
+          "C1": 232,
+          "C2": 226
+        }
+      },
+      {
+        "date": "2026-10-02",
+        "sessions": 6213,
+        "missingOut": 75,
+        "peak": {
+          "A": 937,
+          "B": 867,
+          "C1": 234,
+          "C2": 218
+        }
+      }
+    ]
+  },
+  "demo": {
+    "sessions": 1990,
+    "events": 1996,
+    "missingOut": 1984,
+    "firstDate": "2026-10-03",
+    "lastDate": "2026-10-03",
+    "daily": [
+      {
+        "date": "2026-10-03",
+        "sessions": 1990,
+        "missingOut": 1984,
+        "peak": {
+          "A": 831,
+          "B": 778,
+          "C1": 198,
+          "C2": 178
+        }
+      }
+    ]
+  },
+  "scheduleRows": 1435,
+  "sameWeekdayDates": [
+    "2026-09-05",
+    "2026-09-12",
+    "2026-09-19",
+    "2026-09-26"
+  ],
+  "generation": [
+    {
+      "date": "2026-09-23",
+      "sourceDate": "2026-09-16",
+      "volumeFactor": 1.030526,
+      "sessions": 9142,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-09-24",
+      "sourceDate": "2026-08-27",
+      "volumeFactor": 1.014168,
+      "sessions": 6601,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-09-25",
+      "sourceDate": "2026-08-28",
+      "volumeFactor": 1.023384,
+      "sessions": 6641,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-09-26",
+      "sourceDate": "2026-09-19",
+      "volumeFactor": 1.013189,
+      "sessions": 5869,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-09-28",
+      "sourceDate": "2026-09-21",
+      "volumeFactor": 0.985664,
+      "sessions": 9058,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-09-29",
+      "sourceDate": "2026-09-01",
+      "volumeFactor": 0.989655,
+      "sessions": 8039,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-09-30",
+      "sourceDate": "2026-08-19",
+      "volumeFactor": 0.972084,
+      "sessions": 8334,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-10-01",
+      "sourceDate": "2026-09-17",
+      "volumeFactor": 1.018872,
+      "sessions": 6360,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-10-02",
+      "sourceDate": "2026-09-04",
+      "volumeFactor": 1.039212,
+      "sessions": 6213,
+      "scheduleRows": 35
+    },
+    {
+      "date": "2026-10-03",
+      "sourceDate": "2026-08-29",
+      "volumeFactor": 1.04,
+      "sessions": 1990,
+      "scheduleRows": 35
+    }
+  ],
+  "checks": {
+    "validSchema": true,
+    "validLotAndGate": true,
+    "noDuplicateSessions": true,
+    "nonnegativeDailyOccupancy": true,
+    "demoExcludedFromHistory": true,
+    "noDemoEventsAfterCutoff": true,
+    "fourSameWeekdaysForEveryLot": true
+  }
+}
