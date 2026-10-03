@@ -8,6 +8,8 @@ import { StudentRoutePage } from './pages/sv/route/StudentRoutePage'
 import { ForecastPage } from './pages/forecast/ForecastPage'
 import { ImportPage } from './pages/import/ImportPage'
 import { AssistantPage } from './pages/assistant/AssistantPage'
+import { RulesPage } from './pages/rules/RulesPage'
+import { SettingsPage } from './pages/settings/SettingsPage'
 
 function Screen({ title }: { title: string }) {
   return <section className="screen"><h1>{title}</h1></section>
@@ -25,6 +27,8 @@ export default function App() {
       <Route path="forecast" element={<ForecastPage />} />
       <Route path="assistant" element={<AssistantPage />} />
       <Route path="import" element={<ImportPage />} />
+      <Route path="rules" element={<RulesPage />} />
+      <Route path="settings" element={<SettingsPage />} />
       <Route path="*" element={<Navigate replace to="/" />} />
     </Route>
   </Routes>

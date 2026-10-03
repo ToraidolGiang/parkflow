@@ -1,0 +1,1 @@
+.mapping-tabs{display:flex;align-items:center;gap:12px;margin-bottom:12px}.mapping-tabs button{padding:5px 0;border:0;border-bottom:2px solid transparent;color:#53657d;background:transparent;cursor:pointer}.mapping-tabs button[aria-selected="true"]{color:#1761ec;border-color:#1761ec}.mapping-tabs .ai-chip{margin-left:-4px}
