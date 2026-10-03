@@ -55,13 +55,13 @@ public class BaselineService {
     private List<Point> compute(String lotId, LocalDate target) {
         // Chỉ đưa tối đa 4 * 29 số tổng hợp về Java, không tải dữ liệu từng xe.
         List<Sample> samples = jdbc.query("""
-                WITH days AS (
+                WITH days AS MATERIALIZED (
                     SELECT DISTINCT (ts AT TIME ZONE 'Asia/Ho_Chi_Minh')::date AS day
                     FROM events
                     WHERE lot_id = ? AND historical = true AND ts < ?
                       AND EXTRACT(ISODOW FROM ts AT TIME ZONE 'Asia/Ho_Chi_Minh') = ?
                     ORDER BY day DESC LIMIT 4
-                ), openings AS (
+                ), openings AS MATERIALIZED (
                     SELECT day, (day::timestamp AT TIME ZONE 'Asia/Ho_Chi_Minh') AS midnight,
                            (SELECT COUNT(*) FROM (
                                SELECT DISTINCT ON (card_hash) direction

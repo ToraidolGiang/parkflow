@@ -66,7 +66,7 @@ public class ForecastService {
                 new ApiException(HttpStatus.NOT_FOUND, "UNKNOWN_LOT", "Không tìm thấy bãi"));
         var midnight = date.atStartOfDay(ParkFlowClock.ZONE).toOffsetDateTime();
         var actuals = jdbc.query("""
-                WITH opening AS (
+                WITH opening AS MATERIALIZED (
                     SELECT COUNT(*) AS count FROM (
                         SELECT DISTINCT ON (card_hash) direction FROM events
                         WHERE lot_id = ? AND ts < ? AND ts > ?
