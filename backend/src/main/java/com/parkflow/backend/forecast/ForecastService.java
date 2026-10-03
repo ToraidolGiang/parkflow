@@ -77,11 +77,12 @@ public class ForecastService {
                     CASE e.direction WHEN 'in' THEN 1 WHEN 'out' THEN -1 ELSE 0 END), 0) AS count
                 FROM opening o CROSS JOIN generate_series(0,28) s(slot)
                 LEFT JOIN events e ON e.lot_id = ? AND e.ts >= ?
+                    AND e.ts <= ?::timestamptz + INTERVAL '13 hours'
                     AND e.ts <= ?::timestamptz + INTERVAL '6 hours' + s.slot * INTERVAL '15 minutes'
                 WHERE ?::timestamptz + INTERVAL '6 hours' + s.slot * INTERVAL '15 minutes' <= ?
                 GROUP BY s.slot, o.count ORDER BY s.slot
                 """, (rs, row) -> new Actual(rs.getInt("slot"), Math.max(0, rs.getInt("count"))),
-                lotId, midnight, midnight.minusHours(24), lotId, midnight, midnight,
+                lotId, midnight, midnight.minusHours(24), lotId, midnight, midnight, midnight,
                 midnight, calculated.generatedAt());
         java.util.Map<Integer, Integer> bySlot = new java.util.HashMap<>();
         actuals.forEach(a -> bySlot.put(a.slot(), a.count()));
