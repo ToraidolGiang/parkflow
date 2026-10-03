@@ -1,0 +1,12 @@
+.git
+.github
+**/node_modules
+**/dist
+**/target
+frontend/e2e
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+docs
