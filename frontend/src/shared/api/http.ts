@@ -1,6 +1,9 @@
 import { ApiError, type ApiProblem, type RequestOptions } from '../types/api'
 
 const REQUEST_TIMEOUT_MS = 15_000
+const GET_CACHE_TTL_MS = 2_000
+const getCache = new Map<string, { expires: number; value: unknown }>()
+const getInflight = new Map<string, Promise<unknown>>()
 
 export { ApiError }
 export type { RequestOptions }
@@ -53,4 +56,28 @@ export async function request<T, TFallback = unknown>(
 
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
+}
+
+/** Shares short-lived read requests between pages; mutations explicitly invalidate their URL. */
+export async function requestCached<T>(url: string, options: RequestOptions = {}): Promise<T> {
+  if (options.method && options.method !== 'GET') return request<T>(url, options)
+  const cached = getCache.get(url)
+  if (cached && cached.expires > Date.now()) return cached.value as T
+  const running = getInflight.get(url)
+  if (running) return running as Promise<T>
+  const promise = request<T>(url, options).then((value) => {
+    getCache.set(url, { value, expires: Date.now() + GET_CACHE_TTL_MS })
+    return value
+  }).finally(() => getInflight.delete(url))
+  getInflight.set(url, promise)
+  return promise
+}
+
+export function invalidateRequestCache(...urls: string[]) {
+  for (const url of urls) getCache.delete(url)
+}
+
+export function clearRequestCache() {
+  getCache.clear()
+  getInflight.clear()
 }
