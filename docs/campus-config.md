@@ -8,6 +8,6 @@ Cả lần seed chạy trong một giao dịch với khóa PostgreSQL. Có bản
 
 `GET /api/config` trả JSON đã lưu trong CSDL và thêm `count` hiện tại cho từng bãi. Giang có thể dùng `current()` hoặc `currentWithCounts()` từ service, không phải đọc lại file JSON.
 
-Migration mới: `V2__campus_config.sql`. Chưa đổi các migration đã có. JSON được đóng gói qua cấu hình resource trong `backend/pom.xml`.
+Migration mới: `V3__campus_config.sql`. Chưa đổi các migration đã có. JSON được đóng gói qua cấu hình resource trong `backend/pom.xml`.
 
 Kiểm thử: `CampusConfigServiceTest`. Chạy đầy đủ ứng dụng cần cấu hình đúng tài khoản PostgreSQL trong `.env`.
