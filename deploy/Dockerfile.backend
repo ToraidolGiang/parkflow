@@ -1,0 +1,22 @@
+# Ảnh backend. Dựng từ GỐC repo: docker build -f deploy/Dockerfile.backend .
+# Dữ liệu giả lập (simulator/data/*.csv) được đóng vào jar qua cấu hình resources trong backend/pom.xml,
+# nên cần đưa cả thư mục simulator/data vào ngữ cảnh dựng.
+FROM eclipse-temurin:17-jdk AS build
+WORKDIR /src
+COPY backend/.mvn backend/.mvn
+COPY backend/mvnw backend/pom.xml backend/
+# Tải thư viện trước để lớp này được lưu lại khi chỉ đổi mã nguồn.
+RUN cd backend && chmod +x mvnw && ./mvnw -B -q dependency:go-offline
+COPY backend/src backend/src
+COPY simulator/data simulator/data
+RUN cd backend && ./mvnw -B -q -DskipTests package && cp target/backend-*.jar /app.jar
+
+FROM eclipse-temurin:17-jre
+ENV TZ=Asia/Ho_Chi_Minh
+# Chạy bằng người dùng thường, không dùng root.
+RUN useradd --system --create-home parkflow
+USER parkflow
+COPY --from=build /app.jar /app/app.jar
+EXPOSE 8080
+# Giới hạn heap để chừa chỗ cho Postgres và Caddy trên máy nhỏ.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=60", "-jar", "/app/app.jar"]
