@@ -35,3 +35,4 @@ export type ForecastOverview = {
 }
 
 export type ApprovalResult = { version: number; status: 'approved' }
+export type ApprovalInput = { approvedBy: string; option?: string }

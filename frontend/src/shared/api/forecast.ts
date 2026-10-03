@@ -3,7 +3,7 @@ import forecastMock from '../mock/forecast-A.json'
 import planMock from '../mock/plan-current.json'
 import qualityMock from '../mock/quality-flags.json'
 import type { CampusConfig } from '../types/campus'
-import type { ForecastOverview, PlanViewModel } from '../types/forecast'
+import type { ApprovalInput, ApprovalResult, ForecastOverview, PlanViewModel } from '../types/forecast'
 import { createCampusLookup, getCampusConfig } from './campus'
 import { ApiError, mockApiEnabled, request } from './http'
 
@@ -86,19 +86,21 @@ function withForecast(current: ForecastOverview, lotId: string, forecast: RawFor
   }
 }
 
-export async function approvePlan(version: number) { return { version, status: 'approved' as const } }
+export async function approvePlan(version: number, input: ApprovalInput, signal?: AbortSignal): Promise<ApprovalResult> {
+  if (mockApiEnabled()) return { version, status: 'approved' }
+  return request<ApprovalResult>(`/api/plan/${version}/approve`, { method: 'POST', body: input, signal })
+}
 
 export function useForecastOverview() {
   const [data, setData] = useState<ForecastOverview>()
   const [error, setError] = useState<Error>()
-  const [reloadKey, setReloadKey] = useState(0)
   const dataRef = useRef<ForecastOverview | undefined>(undefined)
   const selectionController = useRef<AbortController | undefined>(undefined)
   useEffect(() => {
     let active = true; const controller = new AbortController()
     getForecastOverview(dataRef.current?.selectedLotId, controller.signal).then((result) => { if (active) { dataRef.current = result; setData(result); setError(undefined) } }).catch((reason: unknown) => { if (active && !controller.signal.aborted) setError(reason instanceof Error ? reason : new Error('Không thể tải dự báo')) })
     return () => { active = false; controller.abort() }
-  }, [reloadKey])
+  }, [])
   useEffect(() => () => selectionController.current?.abort(), [])
   const selectLot = useCallback((id: string) => {
     const current = dataRef.current
@@ -112,5 +114,10 @@ export function useForecastOverview() {
       dataRef.current = next; setData(next); setError(undefined)
     }).catch((reason: unknown) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason : new Error('Không thể tải dự báo')) })
   }, [])
-  return { data, error, isLoading: !data && !error, selectLot, refresh: useCallback(() => setReloadKey(value => value + 1), []) }
+  const refresh = useCallback(async () => {
+    const result = await getForecastOverview(dataRef.current?.selectedLotId)
+    dataRef.current = result; setData(result); setError(undefined)
+    return result
+  }, [])
+  return { data, error, isLoading: !data && !error, selectLot, refresh }
 }
