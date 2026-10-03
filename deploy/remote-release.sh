@@ -22,8 +22,9 @@ log "Giải nén bản $ID"
 mkdir -p "$RELEASES/$ID"
 tar -xzf "$BASE/incoming/$ID.tar.gz" -C "$RELEASES/$ID"
 
+# Mã bản đang chạy khỏe được ghi vào tệp văn bản (không phụ thuộc liên kết tượng trưng).
 PREV=""
-[ -L "$BASE/current" ] && PREV="$(basename "$(readlink "$BASE/current")")"
+[ -f "$BASE/current-release" ] && PREV="$(cat "$BASE/current-release")"
 
 # Sao lưu CSDL nếu bản cũ đang chạy (không chặn việc phát hành nếu chưa có gì để sao lưu).
 if [ -n "$PREV" ] && docker compose -p parkflow-thi ps --status running --services 2>/dev/null | grep -qx db; then
@@ -58,7 +59,8 @@ if [ "${ROLLBACK:-0}" = 1 ] || ! healthy; then
   exit 1
 fi
 
-ln -sfn "$RELEASES/$ID" "$BASE/current"
+echo "$ID" > "$BASE/current-release"
+ln -sfn "$RELEASES/$ID" "$BASE/current" 2>/dev/null || true
 log "Bản $ID đang chạy khỏe."
 
 # Dọn các bản cũ, giữ KEEP bản mới nhất.
