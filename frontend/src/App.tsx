@@ -10,10 +10,7 @@ import { ImportPage } from './pages/import/ImportPage'
 import { AssistantPage } from './pages/assistant/AssistantPage'
 import { RulesPage } from './pages/rules/RulesPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
-
-function Screen({ title }: { title: string }) {
-  return <section className="screen"><h1>{title}</h1></section>
-}
+import { DashboardPage } from './pages/dashboard/DashboardPage'
 
 function StudentRoutes() {
   return <StudentFlowProvider><Routes><Route element={<StudentLayout />}><Route index element={<StudentSelectionPage />} /><Route path="recommendation" element={<StudentRecommendationPage />} /><Route path="route" element={<StudentRoutePage />} /></Route></Routes></StudentFlowProvider>
@@ -23,7 +20,7 @@ export default function App() {
   return <Routes>
     <Route path="sv/*" element={<StudentRoutes />} />
     <Route element={<AppShell />}>
-      <Route index element={<Screen title="Bảng điều khiển" />} />
+      <Route index element={<DashboardPage />} />
       <Route path="forecast" element={<ForecastPage />} />
       <Route path="assistant" element={<AssistantPage />} />
       <Route path="import" element={<ImportPage />} />
