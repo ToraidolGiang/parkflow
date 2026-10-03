@@ -99,6 +99,7 @@
 	<build>
 		<resources>
 			<resource><directory>src/main/resources</directory></resource>
+            <resource><directory>../simulator/data</directory><targetPath>simulator</targetPath><includes><include>*.csv</include></includes></resource>
 		</resources>
 		<plugins>
 			<plugin>

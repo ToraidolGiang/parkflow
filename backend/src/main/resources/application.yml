@@ -28,3 +28,6 @@ server:
 parkflow:
   # Khóa của nhà cung cấp gửi sự kiện (header X-Api-Key), nhiều khóa ngăn bằng dấu phẩy. Để trống khi chạy dev thì không chặn.
   api-keys: ${EVENTS_API_KEY:}
+
+  sim:
+    control-key: ${SIM_CONTROL_KEY:}
