@@ -1,0 +1,11 @@
+{
+  "flags": [
+    {
+      "id": "qf_001",
+      "lotId": "D",
+      "type": "missing_out",
+      "since": "2026-10-03T06:40:00+07:00",
+      "message": "Bãi D: 3 phiên có vào nhưng không có lượt ra quá 24 giờ"
+    }
+  ]
+}

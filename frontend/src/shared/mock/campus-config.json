@@ -1,0 +1,41 @@
+{
+  "school": "Trường Đại học Xây dựng Hà Nội",
+  "thresholds": {
+    "yellow": 0.8,
+    "warn": 0.9,
+    "over": 1,
+    "target": 0.96,
+    "targetMax": 1,
+    "ceiling": 1.2
+  },
+  "gates": [
+    { "id": "MAIN", "name": "Cổng Giải Phóng", "normalOpen": "06:00", "capacityPer15": 200, "svg": [520, 650] },
+    { "id": "EAST", "name": "Cổng Trần Đại Nghĩa", "normalOpen": "07:00", "capacityPer15": 200, "svg": [800, 40] }
+  ],
+  "buildings": [
+    { "id": "H1", "name": "H1", "nearLot": "A", "svg": [300, 370] },
+    { "id": "H2", "name": "H2", "nearLot": "B", "svg": [860, 300] },
+    { "id": "H3", "name": "H3", "nearLot": "C1", "svg": [350, 90] },
+    { "id": "G3", "name": "G3", "nearLot": "A", "svg": [670, 225] },
+    { "id": "A1", "name": "A1", "nearLot": "A", "svg": [220, 580] },
+    { "id": "A2", "name": "A2", "nearLot": "B", "svg": [670, 550] },
+    { "id": "TV", "name": "Thư viện", "nearLot": "B", "svg": [860, 455] },
+    { "id": "TN", "name": "Thí nghiệm", "nearLot": "C1", "svg": [650, 75] }
+  ],
+  "lots": [
+    { "id": "A", "name": "Nhà xe hầm 1 sau G3", "capacity": 1450, "max": 1740, "gate": "MAIN", "near": "G3", "alternates": ["B", "C1", "C2"], "svg": [610, 150] },
+    { "id": "B", "name": "Nhà xe hầm 2 sau G3", "capacity": 1450, "max": 1740, "gate": "EAST", "near": "G3", "alternates": ["C1", "C2"], "svg": [700, 150] },
+    { "id": "C1", "name": "Nhà xe C1 gần H3", "capacity": 300, "max": 360, "gate": "EAST", "near": "H3", "alternates": ["B"], "svg": [330, 155] },
+    { "id": "C2", "name": "Nhà xe C2 gần H3", "capacity": 300, "max": 360, "gate": "EAST", "near": "H3", "alternates": ["B"], "svg": [385, 155] }
+  ],
+  "routes": [
+    { "gate": "MAIN", "lot": "A", "path": [[520, 650], [610, 150]], "steps": ["Vào Cổng Giải Phóng", "Đến nhà xe A"], "walkMinutes": { "G3": 2 } },
+    { "gate": "MAIN", "lot": "B", "path": [[520, 650], [700, 150]], "steps": ["Vào Cổng Giải Phóng", "Đến nhà xe B"], "walkMinutes": { "G3": 2 } },
+    { "gate": "MAIN", "lot": "C1", "path": [[520, 650], [330, 155]], "steps": ["Vào Cổng Giải Phóng", "Đến nhà xe C1"], "walkMinutes": { "H3": 1 } },
+    { "gate": "MAIN", "lot": "C2", "path": [[520, 650], [385, 155]], "steps": ["Vào Cổng Giải Phóng", "Đến nhà xe C2"], "walkMinutes": { "H3": 1 } },
+    { "gate": "EAST", "lot": "A", "path": [[800, 40], [610, 150]], "steps": ["Vào Cổng Trần Đại Nghĩa", "Đến nhà xe A"], "walkMinutes": { "G3": 2 } },
+    { "gate": "EAST", "lot": "B", "path": [[800, 40], [700, 150]], "steps": ["Vào Cổng Trần Đại Nghĩa", "Đến nhà xe B"], "walkMinutes": { "G3": 2 } },
+    { "gate": "EAST", "lot": "C1", "path": [[800, 40], [330, 155]], "steps": ["Vào Cổng Trần Đại Nghĩa", "Đến nhà xe C1"], "walkMinutes": { "H3": 1 } },
+    { "gate": "EAST", "lot": "C2", "path": [[800, 40], [385, 155]], "steps": ["Vào Cổng Trần Đại Nghĩa", "Đến nhà xe C2"], "walkMinutes": { "H3": 1 } }
+  ]
+}

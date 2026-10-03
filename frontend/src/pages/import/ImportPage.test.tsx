@@ -30,4 +30,13 @@ describe('ImportPage', () => {
     fireEvent.change(input, { target: { files: [file] } })
     expect(screen.getByRole('alert')).toHaveTextContent('Log quẹt thẻ cần định dạng CSV.')
   })
+
+  it('shows the AI mapping suggested for the schedule file', () => {
+    const view = render(<ImportPage />)
+    fireEvent.click(view.getByRole('button', { name: 'Dùng dữ liệu mẫu' }))
+    fireEvent.click(view.getByRole('tab', { name: 'Lịch học' }))
+    expect(view.getByText('class_id')).toBeInTheDocument()
+    expect(view.getByText('Mã lớp')).toBeInTheDocument()
+    expect(view.getByText('Số sinh viên')).toBeInTheDocument()
+  })
 })

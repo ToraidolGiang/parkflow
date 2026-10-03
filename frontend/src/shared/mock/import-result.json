@@ -1,0 +1,14 @@
+{
+  "imported": 24379,
+  "skipped": 2,
+  "errors": [
+    {
+      "row": 1207,
+      "message": "Thiếu cột ThoiGianRa"
+    },
+    {
+      "row": 8890,
+      "message": "Sai định dạng ngày giờ ở ThoiGianVao"
+    }
+  ]
+}

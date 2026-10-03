@@ -1,0 +1,200 @@
+{
+  "version": 3,
+  "status": "approved",
+  "createdAt": "2026-10-02T18:00:00+07:00",
+  "window": {
+    "from": "07:15",
+    "to": "08:00"
+  },
+  "reason": "Bãi A dự báo 565/500 (113%) lúc 07:15–08:00",
+  "before": [
+    {
+      "lotId": "A",
+      "count": 565,
+      "pct": 113
+    },
+    {
+      "lotId": "B",
+      "count": 311,
+      "pct": 89
+    },
+    {
+      "lotId": "C",
+      "count": 324,
+      "pct": 81
+    },
+    {
+      "lotId": "D",
+      "count": 198,
+      "pct": 66
+    }
+  ],
+  "after": [
+    {
+      "lotId": "A",
+      "count": 480,
+      "pct": 96
+    },
+    {
+      "lotId": "B",
+      "count": 336,
+      "pct": 96
+    },
+    {
+      "lotId": "C",
+      "count": 384,
+      "pct": 96
+    },
+    {
+      "lotId": "D",
+      "count": 198,
+      "pct": 66
+    }
+  ],
+  "moves": [
+    {
+      "from": "A",
+      "to": "C",
+      "vehicles": 60,
+      "quota": 60,
+      "used": 12,
+      "gate": "EAST"
+    },
+    {
+      "from": "A",
+      "to": "B",
+      "vehicles": 25,
+      "quota": 25,
+      "used": 0,
+      "gate": "EAST"
+    }
+  ],
+  "excluded": [
+    {
+      "lotId": "D",
+      "reason": "Cổng chính đang quá tải"
+    }
+  ],
+  "shortfall": 0,
+  "gateActions": [
+    {
+      "gate": "EAST",
+      "openFrom": "06:45",
+      "normalOpen": "07:00",
+      "extraGuard": "06:45–08:00"
+    }
+  ],
+  "envelope": {
+    "maxMoveTotal": 150,
+    "maxTargetPct": 1.0,
+    "allowedDest": [
+      "B",
+      "C"
+    ]
+  },
+  "pending": {
+    "version": 4,
+    "status": "pending_approval",
+    "createdAt": "2026-10-03T07:20:30+07:00",
+    "window": {
+      "from": "07:15",
+      "to": "08:00"
+    },
+    "reason": "Đột biến: Bãi A dự báo lại 605/500 (121%); còn thiếu 10 xe sau khi dùng B và C ở mức 100%",
+    "before": [
+      {
+        "lotId": "A",
+        "count": 605,
+        "pct": 121
+      },
+      {
+        "lotId": "B",
+        "count": 311,
+        "pct": 89
+      },
+      {
+        "lotId": "C",
+        "count": 324,
+        "pct": 81
+      },
+      {
+        "lotId": "D",
+        "count": 198,
+        "pct": 66
+      }
+    ],
+    "after": [
+      {
+        "lotId": "A",
+        "count": 490,
+        "pct": 98
+      },
+      {
+        "lotId": "B",
+        "count": 350,
+        "pct": 100
+      },
+      {
+        "lotId": "C",
+        "count": 400,
+        "pct": 100
+      },
+      {
+        "lotId": "D",
+        "count": 198,
+        "pct": 66
+      }
+    ],
+    "moves": [
+      {
+        "from": "A",
+        "to": "C",
+        "vehicles": 76,
+        "quota": 76,
+        "used": 0,
+        "gate": "EAST"
+      },
+      {
+        "from": "A",
+        "to": "B",
+        "vehicles": 39,
+        "quota": 39,
+        "used": 0,
+        "gate": "EAST"
+      }
+    ],
+    "excluded": [
+      {
+        "lotId": "D",
+        "reason": "Cổng chính đang quá tải"
+      }
+    ],
+    "shortfall": 10,
+    "shortfallOptions": [
+      {
+        "code": "USE_LOT_D",
+        "label": "Cho 10 xe vào Bãi D (Cổng chính đông thêm)"
+      },
+      {
+        "code": "ACCEPT_HIGHER",
+        "label": "Chấp nhận Bãi A ở 490/500 (98%)"
+      }
+    ],
+    "gateActions": [
+      {
+        "gate": "EAST",
+        "openFrom": "06:45",
+        "normalOpen": "07:00",
+        "extraGuard": "06:45–08:00"
+      }
+    ],
+    "envelope": {
+      "maxMoveTotal": 150,
+      "maxTargetPct": 1.0,
+      "allowedDest": [
+        "B",
+        "C"
+      ]
+    }
+  }
+}

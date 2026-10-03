@@ -2,7 +2,7 @@ import type { BuildingId, StudentSelection } from '../types'
 
 export const SELECTION_KEY = 'parkflow.student.selection'
 const SESSION_KEY = 'parkflow.student.session'
-const buildings: BuildingId[] = ['NHC', 'TV', 'GDA', 'KTT']
+const buildings: BuildingId[] = ['NHC', 'TV', 'GDA', 'KTT', 'H1', 'H2', 'H3', 'G3', 'A1', 'A2', 'TN']
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/
 
 export function isStudentSelection(value: unknown): value is StudentSelection {

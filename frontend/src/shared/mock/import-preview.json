@@ -1,0 +1,41 @@
+{
+  "importId": "imp_20261003_0001",
+  "kind": "swipe_log",
+  "headers": [
+    "ThoiGianVao",
+    "ThoiGianRa",
+    "MaCong",
+    "MaThe",
+    "KhuVucGui",
+    "PhuongTien"
+  ],
+  "sampleRows": [
+    [
+      "2026-09-14 07:02:33",
+      "2026-09-14 11:45:12",
+      "G1",
+      "a3f9c1",
+      "A",
+      "XM"
+    ],
+    [
+      "2026-09-14 07:03:10",
+      "2026-09-14 12:10:40",
+      "G1",
+      "b71e02",
+      "A",
+      "XD"
+    ]
+  ],
+  "rowCount": 24381,
+  "errors": [
+    {
+      "row": 1207,
+      "message": "Thiếu cột ThoiGianRa"
+    },
+    {
+      "row": 8890,
+      "message": "Sai định dạng ngày giờ ở ThoiGianVao"
+    }
+  ]
+}

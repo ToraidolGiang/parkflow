@@ -1,0 +1,66 @@
+{
+  "clock": {
+    "mode": "sim",
+    "now": "2026-10-03T07:21:05+07:00"
+  },
+  "updatedAt": "2026-10-03T07:21:05+07:00",
+  "lots": [
+    {
+      "lotId": "A",
+      "name": "Bãi A",
+      "count": 460,
+      "capacity": 500,
+      "maxCapacity": 600,
+      "pct": 92.0,
+      "level": "yellow",
+      "gate": "MAIN",
+      "nearBuilding": "Nhà hành chính",
+      "lastEventAt": "2026-10-03T07:20:58+07:00",
+      "dataFlag": "ok"
+    },
+    {
+      "lotId": "B",
+      "name": "Bãi B",
+      "count": 290,
+      "capacity": 350,
+      "maxCapacity": 420,
+      "pct": 82.9,
+      "level": "yellow",
+      "gate": "EAST",
+      "nearBuilding": "Thư viện",
+      "lastEventAt": "2026-10-03T07:20:51+07:00",
+      "dataFlag": "ok"
+    },
+    {
+      "lotId": "C",
+      "name": "Bãi C",
+      "count": 300,
+      "capacity": 400,
+      "maxCapacity": 480,
+      "pct": 75.0,
+      "level": "green",
+      "gate": "EAST",
+      "nearBuilding": "Giảng đường A",
+      "lastEventAt": "2026-10-03T07:20:55+07:00",
+      "dataFlag": "ok"
+    },
+    {
+      "lotId": "D",
+      "name": "Bãi D",
+      "count": 185,
+      "capacity": 300,
+      "maxCapacity": 360,
+      "pct": 61.7,
+      "level": "green",
+      "gate": "MAIN",
+      "nearBuilding": "Khu thể thao",
+      "lastEventAt": "2026-10-03T07:20:49+07:00",
+      "dataFlag": "suspect"
+    }
+  ],
+  "totals": {
+    "count": 1235,
+    "overloadedLots": 0,
+    "inflowLast15": 338
+  }
+}
