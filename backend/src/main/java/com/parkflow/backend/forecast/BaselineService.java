@@ -6,15 +6,31 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class BaselineService {
     private final JdbcTemplate jdbc;
+    private final ConcurrentHashMap<Key, Cached> cache = new ConcurrentHashMap<>();
+    private volatile long cacheMillis = 0;
 
     public BaselineService(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
+    }
+
+    private record Key(String lotId, LocalDate target) {}
+    private record Cached(List<Point> points, long at) {}
+
+    /**
+     * Thời gian giữ kết quả đường nền theo (bãi, ngày). Đường nền chỉ đổi khi lịch sử đổi nên giữ vài phút là đủ để giao diện
+     * làm mới liên tục không phải tính lại. Mặc định 0 (tắt) để kiểm thử luôn thấy dữ liệu mới; bản chạy thật đặt qua cấu hình.
+     */
+    @Value("${parkflow.forecast.baseline-cache-seconds:0}")
+    void setCacheSeconds(long seconds) {
+        this.cacheMillis = Math.max(0, seconds) * 1000;
     }
 
     public record Point(LocalTime t, double count) {}
@@ -27,6 +43,16 @@ public class BaselineService {
     public List<Point> baseline(String lotId, LocalDate target) {
         if (lotId == null || lotId.isBlank()) throw new IllegalArgumentException("Lot is required");
         Objects.requireNonNull(target, "Target date is required");
+        if (cacheMillis <= 0) return compute(lotId, target);
+        long now = System.currentTimeMillis();
+        Cached hit = cache.get(new Key(lotId, target));
+        if (hit != null && now - hit.at() < cacheMillis) return hit.points();
+        List<Point> computed = compute(lotId, target);
+        if (!computed.isEmpty()) cache.put(new Key(lotId, target), new Cached(computed, now));   // không giữ kết quả rỗng
+        return computed;
+    }
+
+    private List<Point> compute(String lotId, LocalDate target) {
         // Chỉ đưa tối đa 4 * 29 số tổng hợp về Java, không tải dữ liệu từng xe.
         List<Sample> samples = jdbc.query("""
                 WITH days AS (
@@ -53,6 +79,7 @@ public class BaselineService {
                 FROM openings o CROSS JOIN generate_series(0, 28) AS s(slot)
                 LEFT JOIN events e ON e.lot_id = ? AND e.historical = true
                     AND e.ts >= o.midnight
+                    AND e.ts <= o.midnight + INTERVAL '13 hours'
                     AND e.ts <= o.midnight + INTERVAL '6 hours' + s.slot * INTERVAL '15 minutes'
                 GROUP BY o.day, s.slot, o.opening
                 ORDER BY s.slot, o.day
