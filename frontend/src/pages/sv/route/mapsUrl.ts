@@ -1,0 +1,1 @@
+export function isSafeMapsUrl(value: string) { try { const url = new URL(value); return url.protocol === 'https:' && ['google.com','www.google.com','maps.google.com'].includes(url.hostname) && url.pathname.startsWith('/maps/dir') } catch { return false } }

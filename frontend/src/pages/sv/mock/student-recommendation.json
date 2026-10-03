@@ -1,0 +1,11 @@
+{
+  "lotId": "C", "lotName": "Bãi C", "gate": "EAST", "gateName": "Cổng phía Đông",
+  "openFrom": "06:45", "expectedPct": 96, "reason": "Bãi A dự kiến đầy lúc 07:15",
+  "planVersion": 3, "changed": false, "changeMessage": null, "updatedAt": "06:30 hôm nay",
+  "route": {
+    "mapsUrl": "https://www.google.com/maps/dir/?api=1&destination=21.0285,105.8542",
+    "path": [[100, 50], [72, 50], [72, 75]],
+    "steps": ["Đi vào Cổng phía Đông", "Đi thẳng 120 m tới ngã tư nội khu", "Rẽ trái, Bãi C ở phía bên phải"],
+    "walkMinutes": 2
+  }
+}

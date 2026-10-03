@@ -1,0 +1,14 @@
+{
+  "buildings": [
+    { "id": "GDA", "name": "Giảng đường A", "nearbyLot": "Gần Bãi C" },
+    { "id": "NHC", "name": "Nhà hành chính", "nearbyLot": "Gần Bãi A" },
+    { "id": "TV", "name": "Thư viện", "nearbyLot": "Gần Bãi B" },
+    { "id": "KTT", "name": "Khu thể thao", "nearbyLot": "Gần Bãi D" }
+  ],
+  "lots": [
+    { "lotId": "A", "name": "Bãi A", "current": 565, "capacity": 500, "percentage": 113, "status": "overloaded", "gate": "Cổng chính", "nearby": "Nhà hành chính" },
+    { "lotId": "B", "name": "Bãi B", "current": 312, "capacity": 350, "percentage": 89, "status": "near-full", "gate": "Cổng phía Đông", "nearby": "Thư viện" },
+    { "lotId": "C", "name": "Bãi C", "current": 368, "capacity": 400, "percentage": 92, "status": "near-full", "gate": "Cổng phía Đông", "nearby": "Giảng đường A" },
+    { "lotId": "D", "name": "Bãi D", "current": 198, "capacity": 300, "percentage": 66, "status": "available", "gate": "Cổng chính", "nearby": "Khu thể thao" }
+  ]
+}
