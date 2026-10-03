@@ -1,23 +1,8 @@
 # Kế hoạch kiểm thử và danh sách kiểm tra demo
 
-Quyên phụ trách. Tài liệu này là việc **Q1**: tiêu chí “xong” từng mảng, ma trận kịch bản, lệnh tự động, và checklist demo. Đáp án số liệu lấy từ [`thiet-ke/03-thuat-toan-du-bao-phan-luong.md`](thiet-ke/03-thuat-toan-du-bao-phan-luong.md). Cấu hình trường và ngày demo lấy từ [`thiet-ke/05-du-lieu-mau.md`](thiet-ke/05-du-lieu-mau.md). Hợp đồng API: [`thiet-ke/04-api.md`](thiet-ke/04-api.md), [`thiet-ke/openapi.yaml`](thiet-ke/openapi.yaml). Kịch bản chi tiết gốc: [`thiet-ke/06-kich-ban-test.md`](thiet-ke/06-kich-ban-test.md).
-
-Ghi kết quả vào cột **Kết quả** (`✅` / `❌` + một dòng lỗi). Chạy lần 1 trên localhost; lần 2 trên bản đã triển khai (nếu kịp).
-
 ## 0. Mục tiêu và nguyên tắc
 
 Mục tiêu giờ thi: **luồng demo bắt buộc chạy trọn trong ≤ 5 phút**, số trên dashboard / dự báo / kế hoạch / `/sv` / trợ lý **khớp nhau**. AI chỉ diễn giải số đã tính; không có `card_hash` / `card_id` trong FACTS hay log gửi mô hình.
-
-| Lớp | Khi nào chạy | Ai | Tiêu chí đạt |
-|---|---|---|---|
-| Đơn vị + hợp đồng (`./mvnw verify`, `npm test`) | Mỗi PR; mỗi mốc M1–M4 | Chủ mã | CI xanh |
-| Dữ liệu (`node simulator/verify.mjs`) | Sau Q2 và mỗi lần sinh lại CSV | Quyên | Đủ ngày, đủ ca, đủ tuyến, sức chứa không đổi |
-| Phát lại (`replay` + tích hợp ingest) | Sau Q4/Q5 | Quyên, Giang | Lượt 1 accepted; lượt 2 toàn duplicate; số xe cuối không đổi |
-| Thủ công theo bảng TC-* | Sau M2 (ingest+sim), M3 (plan+sv), đóng băng | Quyên (ghi), chủ mã (sửa) | Mọi mục **Bắt buộc** ✅ |
-| E2E Playwright (Q10) | Sau M3 | Quyên / Tuấn Anh | Ba luồng chính xanh |
-| Demo bấm giờ (3 lượt) | T+5:45 và T+6:30 | Cả đội | ≤ 5 phút, không lỗi chặn demo |
-
-Cắt phần **Nên có / Làm đủ** nếu trễ: vẫn phải giữ ingest, giả lập, dự báo–phân bổ, dashboard, `/sv`, trợ lý Mock.
 
 ## 1. Môi trường
 
@@ -28,16 +13,7 @@ Cắt phần **Nên có / Làm đủ** nếu trễ: vẫn phải giữ ingest, g
 - Nạp lịch sử **trước** khi gọi forecast. Start sim không tự nạp lịch sử và không reset số xe.
 - Profile / cấu hình HUCE: bốn nhà xe **A / B / C1 / C2** sức chứa **1.450 / 1.450 / 300 / 300**; cổng `MAIN` (Giải Phóng) và `EAST` (Trần Đại Nghĩa). PUT `/api/config` từ `simulator/data/campus_config.json` nếu DB đã có config cũ (build mới không ghi đè).
 
-```bash
-docker compose up -d db
-cd backend && ./mvnw verify && ./mvnw spring-boot:run
-cd frontend && npm ci && npm test && npm run lint && npm run build && npm run dev
-node simulator/verify.mjs
-```
-
 ## 2. Tiêu chí xong từng mảng (theo phạm vi ngày thi)
-
-Cột **Mốc** là lúc muộn nhất phải kiểm được trên máy tích hợp.
 
 ### 2.1 Bắt buộc
 
@@ -214,12 +190,6 @@ cd frontend; npm test -- --maxWorkers=2; npm run lint; npm run build
 
 E2E sau Q10 (ba luồng): quản trị xem dashboard; đột biến thấy điều hướng; sinh viên nhận gợi ý. Chụp màn vào thư mục kết quả e2e nếu đã cấu hình.
 
-Cuối buổi (không phải test sản phẩm, là kiểm chứng liêm chính):
-
-```bash
-scripts/bao-cao-commit.sh "2026-10-03T07:30:00+07:00"
-scripts/kiem-tra-cua-so-thi.sh "2026-10-03T07:30:00+07:00" "2026-10-03T14:30:00+07:00"
-```
 
 ## 8. Phạm vi cố ý không chặn demo
 
