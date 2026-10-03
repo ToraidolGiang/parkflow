@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getForecastOverview } from './forecast'
+import { approvePlan, getForecastOverview } from './forecast'
 
 const config = { school: 'HUCE', thresholds: { yellow: .8, over: 1, ceiling: 1.2 }, gates: [{ id: 'GATE-3', name: 'Cổng Bắc' }], buildings: [], lots: [{ id: 'LAB-X9', name: 'Nhà xe Lab', capacity: 40, gate: 'GATE-3', near: 'LAB' }], routes: [] }
 const body = { version: 3, status: 'approved', createdAt: '2026-10-01T18:00:00+07:00', window: { from: '07:00', to: '08:00' }, reason: 'Điều phối', before: [{ lotId: 'LAB-X9', count: 20, pct: 50 }], after: [{ lotId: 'LAB-X9', count: 18, pct: 45 }], moves: [], excluded: [], shortfall: 0, gateActions: [], envelope: { maxMoveTotal: 10, maxTargetPct: 1, allowedDest: [] } }
@@ -43,5 +43,13 @@ describe('forecast API adapter', () => {
     const result = await getForecastOverview('LAB-X9')
     expect(result.plan).toBeNull()
     expect(result.points[0].forecast).toBe(50)
+  })
+
+  it('posts the reviewer and selected shortfall option', async () => {
+    vi.stubEnv('VITE_USE_MOCK_API', 'false')
+    const fetcher = vi.fn().mockResolvedValue(json({ version: 4, status: 'approved' }))
+    vi.stubGlobal('fetch', fetcher)
+    await expect(approvePlan(4, { approvedBy: 'Tuan Anh', option: 'ACCEPT_HIGHER' })).resolves.toEqual({ version: 4, status: 'approved' })
+    expect(fetcher).toHaveBeenCalledWith('/api/plan/4/approve', expect.objectContaining({ method: 'POST', body: JSON.stringify({ approvedBy: 'Tuan Anh', option: 'ACCEPT_HIGHER' }) }))
   })
 })

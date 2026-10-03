@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { approvePlan, useForecastOverview } from '../../shared/api/forecast'
+import { ApiError } from '../../shared/api/http'
 import type { ForecastPoint, PlanLot } from '../../shared/types/forecast'
 import './forecast.css'
 
 function ForecastChart({ points, thresholds, lotName }: { points: ForecastPoint[]; thresholds: { warn: number; design: number; ceiling: number }; lotName: string }) {
   const width = 1020, height = 250, left = 48, right = 20, top = 18, bottom = 42
-  const x = (index: number) => left + index * ((width - left - right) / (points.length - 1))
+  const x = (index: number) => points.length < 2
+    ? left + (width - left - right) / 2
+    : left + index * ((width - left - right) / (points.length - 1))
   const y = (value: number) => top + ((130 - value) / 130) * (height - top - bottom)
   const line = (key: 'forecast' | 'afterPlan') => points.map((point, index) => `${x(index)},${y(point[key])}`).join(' ')
   return <div className="forecast-chart"><svg aria-label={`Biểu đồ dự báo lấp đầy ${lotName}`} role="img" viewBox={`0 0 ${width} ${height}`}>
@@ -32,6 +35,9 @@ export function ForecastPage() {
   const [approvalMessage, setApprovalMessage] = useState('')
   const [approvalError, setApprovalError] = useState('')
   const [isApproving, setIsApproving] = useState(false)
+  const [approvedBy, setApprovedBy] = useState('')
+  const [option, setOption] = useState('')
+  const approvalLock = useRef(false)
 
   if (isLoading) return <div className="screen-status" role="status">Đang tải dự báo…</div>
   if (!data) return <div className="screen-status" role={error ? 'alert' : 'status'}><p>{error ? 'Không thể tải dữ liệu dự báo.' : 'Đang tải dự báo…'}</p>{error && <button onClick={refresh}>Thử lại</button>}</div>
@@ -39,14 +45,20 @@ export function ForecastPage() {
   const plan = data.pendingPlan ?? data.plan
 
   const approve = async () => {
+    if (approvalLock.current || !data.pendingPlan) return
+    approvalLock.current = true
     setIsApproving(true); setApprovalError('')
     try {
-      if (!data.pendingPlan) return
-      const result = await approvePlan(data.pendingPlan.version)
+      const result = await approvePlan(data.pendingPlan.version, { approvedBy: approvedBy.trim(), ...(option ? { option } : {}) })
+      await refresh()
       setApprovalMessage(`Đã duyệt phương án phiên bản ${result.version}.`)
-    } catch {
-      setApprovalError('Không thể duyệt phương án. Vui lòng thử lại.')
-    } finally { setIsApproving(false) }
+    } catch (reason) {
+      if (reason instanceof ApiError && (reason.status === 404 || reason.status === 409)) {
+        await refresh().catch(() => undefined)
+        setApprovalError('Kế hoạch đã thay đổi, vui lòng kiểm tra lại.')
+      } else if (reason instanceof ApiError && reason.status === 400) setApprovalError(reason.message)
+      else setApprovalError('Không thể duyệt phương án. Vui lòng thử lại.')
+    } finally { approvalLock.current = false; setIsApproving(false) }
   }
 
   return <div className="forecast-page">
@@ -59,7 +71,7 @@ export function ForecastPage() {
     {data.qualityFlags.map((flag) => <div className={`quality-flag ${flag.severity}`} role="status" key={flag.id}><strong>Cờ chất lượng dữ liệu</strong><span>{flag.message}</span></div>)}
     <section className="forecast-panel chart-panel"><div className="panel-heading"><h2>Biểu đồ dự báo lấp đầy</h2><span>{data.selectedLot}</span></div><ForecastChart lotName={data.selectedLot} points={data.points} thresholds={data.thresholds} /></section>
     {!plan ? <section className="forecast-panel empty-plan"><h2>Chưa có kế hoạch</h2><p>Dự báo vẫn sẵn sàng; chưa có phương án phân luồng cho ngày này.</p></section> : <><section className="forecast-panel allocation-panel"><h2>Trước / sau điều hướng · {data.date}</h2><p>{plan.reason}</p>{plan.before.map((before) => { const after = plan.after.find(item => item.lotId === before.lotId); return after ? <AllocationRow after={after} before={before} key={before.lotId} /> : null })}</section>
-    <section className="forecast-panel proposal-panel"><div><h2>Đề xuất vận hành <span className="ai-chip">AI</span></h2><ul>{plan.moves.map(move => <li key={`${move.from}-${move.to}`}>Điều hướng <strong>{move.vehicles} xe từ {move.fromName} sang {move.toName}</strong>.</li>)}{plan.gateActions.map(action => <li key={action.gate}>Mở <strong>{action.gateName}</strong> lúc {action.openFrom} thay vì {action.normalOpen}.</li>)}{plan.excluded.map(item => <li key={item.lotId}>Không chọn {item.lotName} vì {item.reason.toLowerCase()}.</li>)}</ul></div><div className="approval-block"><span className="pending-badge">{data.pendingPlan ? 'Chờ duyệt' : 'Đang áp dụng'} · v{plan.version}</span>{data.pendingPlan && <button disabled={isApproving || Boolean(approvalMessage)} onClick={approve} type="button">{isApproving ? 'Đang duyệt…' : approvalMessage ? 'Đã duyệt' : 'Duyệt phương án'}</button>}</div></section></>}
+    <section className="forecast-panel proposal-panel"><div><h2>Đề xuất vận hành <span className="ai-chip">AI</span></h2><ul>{plan.moves.map(move => <li key={`${move.from}-${move.to}`}>Điều hướng <strong>{move.vehicles} xe từ {move.fromName} sang {move.toName}</strong>.</li>)}{plan.gateActions.map(action => <li key={action.gate}>Mở <strong>{action.gateName}</strong> lúc {action.openFrom} thay vì {action.normalOpen}.</li>)}{plan.excluded.map(item => <li key={item.lotId}>Không chọn {item.lotName} vì {item.reason.toLowerCase()}.</li>)}</ul></div><div className="approval-block"><span className="pending-badge">{data.pendingPlan ? 'Chờ duyệt' : 'Đang áp dụng'} · v{plan.version}</span>{data.pendingPlan && <><label>Người duyệt<input aria-label="Người duyệt" onChange={event => setApprovedBy(event.target.value)} value={approvedBy} /></label>{data.pendingPlan.shortfall > 0 && <label>Phương án xử lý<select aria-label="Phương án xử lý" onChange={event => setOption(event.target.value)} value={option}><option value="">Chọn phương án</option>{data.pendingPlan.shortfallOptions?.map(item => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label>}<button disabled={isApproving || !approvedBy.trim() || (data.pendingPlan.shortfall > 0 && !option)} onClick={approve} type="button">{isApproving ? 'Đang duyệt…' : 'Duyệt phương án'}</button></>}</div></section></>}
     <div aria-live="polite">{approvalMessage && <p className="approval-success">{approvalMessage}</p>}{approvalError && <p className="approval-error">{approvalError}</p>}</div>
   </div>
 }

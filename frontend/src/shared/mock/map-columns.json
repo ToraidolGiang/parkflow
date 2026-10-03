@@ -1,0 +1,16 @@
+{
+  "mappings": [
+    { "column": "ts_in", "field": "time_in", "confidence": 0.98 },
+    { "column": "ts_out", "field": "time_out", "confidence": 0.97 },
+    { "column": "gate_id", "field": "gate_id", "confidence": 0.95 },
+    { "column": "card_id", "field": "card_id", "confidence": 0.92 },
+    { "column": "lot_id", "field": "lot_id", "confidence": 0.88 },
+    { "column": "vehicle_type", "field": "vehicle_type", "confidence": 0.79 },
+    { "column": "class_id", "field": "class_id", "confidence": 0.98 },
+    { "column": "building", "field": "building", "confidence": 0.96 },
+    { "column": "start_time", "field": "start_time", "confidence": 0.97 },
+    { "column": "end_time", "field": "end_time", "confidence": 0.96 },
+    { "column": "students", "field": "students", "confidence": 0.94 }
+  ],
+  "source": "mock"
+}

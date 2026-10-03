@@ -28,9 +28,16 @@ describe('ForecastPage', () => {
     vi.mocked(forecastApi.approvePlan).mockResolvedValue({ version: 4, status: 'approved' })
     render(<MemoryRouter><ForecastPage /></MemoryRouter>)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Duyệt phương án' }))
+    const approveButton = await screen.findByRole('button', { name: 'Duyệt phương án' })
+    expect(approveButton).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Người duyệt'), { target: { value: 'Tuan Anh' } })
+    expect(approveButton).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Phương án xử lý'), { target: { value: 'ACCEPT_HIGHER' } })
+    fireEvent.click(approveButton)
+    fireEvent.click(approveButton)
 
-    await waitFor(() => expect(forecastApi.approvePlan).toHaveBeenCalledWith(4))
+    await waitFor(() => expect(forecastApi.approvePlan).toHaveBeenCalledWith(4, { approvedBy: 'Tuan Anh', option: 'ACCEPT_HIGHER' }))
+    expect(forecastApi.approvePlan).toHaveBeenCalledTimes(1)
     expect(await screen.findByText('Đã duyệt phương án phiên bản 4.')).toBeInTheDocument()
   })
 })
