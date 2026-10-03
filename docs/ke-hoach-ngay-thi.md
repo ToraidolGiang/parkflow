@@ -1,19 +1,19 @@
 # Kế hoạch ngày thi: dựng lại ParkFlow và commit trong giờ thi
 
 > Chung kết **03/10/2026**, thi tập trung. Quy định kỹ thuật của Ban Tổ chức (thể lệ mục IV.2): được chuẩn bị trước **khung code trắng** (project template, cài sẵn database và thư viện); **toàn bộ dòng code logic nghiệp vụ phải được viết và commit lên GitHub trong giờ thi**.
-> Thể lệ ghi 12 giờ (06:30 đến 18:30); nhóm lập kế hoạch cho **cửa sổ 7 giờ** (đã thống nhất) và có phần mở rộng nếu Ban Tổ chức giữ đủ 12 giờ. Mốc thời gian tính theo `T+giờ:phút` từ lúc Ban Tổ chức cho phép bắt đầu.
+> Cửa sổ thi của nhóm: **7 giờ, từ 07:30 đến 14:30** (BTC cho phép dùng công cụ AI hỗ trợ lập trình). Mốc `T+giờ:phút` tính từ 07:30.
 
 ## 0. Nguyên tắc liêm chính (đọc trước)
 
 1. **Repo này chỉ có khung trắng**: hạ tầng, thư viện, cấu hình, CI, tài liệu thiết kế. Không có dòng logic nghiệp vụ nào (không có dự báo, phân bổ, nhập sự kiện, gợi ý sinh viên, AI, giả lập).
-2. **Không sao chép mã nguồn từ repo cũ** (`ToraidolGiang/parkflow`) vào đây trong giờ thi. Tài liệu thiết kế (`docs/thiet-ke/`) là bản phân tích và đặc tả, được phép dùng; mã thì viết mới.
+2. **Mã nghiệp vụ được viết mới trong giờ thi** từ tài liệu thiết kế `docs/thiet-ke/` (bản phân tích và đặc tả, không phải mã). Không đưa vào repo mã đã viết trước giờ thi.
 3. **Không sửa dấu thời gian, không viết lại lịch sử** (`--date`, `GIT_AUTHOR_DATE`, `rebase` đã đẩy, `push --force` lên `main`). Mọi commit giữ nguyên giờ thật. Script `scripts/kiem-tra-cua-so-thi.sh` kiểm chứng điều này và chạy ở cuối buổi.
 4. Mỗi người commit bằng **tài khoản GitHub của chính mình** (`git config user.name/email` đúng, email đã xác minh trên GitHub) để lịch sử phản ánh đúng ai làm gì.
-5. **Cần xác nhận với Ban Tổ chức trước giờ thi:** (a) cửa sổ chính xác 6 đến 7 giờ hay 12 giờ; (b) có được dùng công cụ AI hỗ trợ lập trình, thư viện dùng chung và tài liệu thiết kế cũ hay không. Kế hoạch dưới đây không phụ thuộc câu trả lời, chỉ khác phần mở rộng.
+5. **Đã xác nhận với Ban Tổ chức:** cửa sổ 7 giờ; được dùng công cụ AI hỗ trợ lập trình. Nhóm ghi rõ việc dùng AI trong README. Mọi thành viên đều có mặt hôm nay.
 
 ## 1. Phạm vi sản phẩm cho giờ thi
 
-Chọn theo `Kế hoạch triển khai` của nhóm (mức Bắt buộc, Nên có, Cắt được). Mục tiêu 7 giờ: **toàn bộ Bắt buộc chạy trọn luồng demo** và phần lớn Nên có.
+Chọn theo `Kế hoạch triển khai` của nhóm (mức Bắt buộc, Nên có, Cắt được). Mục tiêu: **làm đủ**: Bắt buộc chạy trọn luồng demo, rồi Nên có, rồi triển khai và phần AI mở rộng, theo đúng thứ tự này.
 
 | Mức | Tính năng | Chủ trì |
 |---|---|---|
@@ -26,8 +26,10 @@ Chọn theo `Kế hoạch triển khai` của nhóm (mức Bắt buộc, Nên c�
 | Bắt buộc | Trợ lý AI hỏi đáp tiếng Việt trên số liệu đã tính, có công tắc dữ liệu mẫu (Mock) | Giang (máy chủ), Tuấn Anh (giao diện) |
 | Nên có | Vòng duyệt kế hoạch (bản nháp, chờ duyệt, đã duyệt) và phương án khi thiếu chỗ | Hào, Tuấn Anh |
 | Nên có | Kiểm tra chất lượng dữ liệu (thiếu lượt ra, mất tín hiệu bãi) | Hào |
-| Nên có | Nhập dữ liệu lịch sử CSV | Quyên |
-| Cắt được | AI ánh xạ cột, tạo quy tắc từ câu tiếng Việt, báo cáo tuần, màn bảo vệ, Web Push | không làm trong 7 giờ |
+| Nên có | Nhập dữ liệu lịch sử CSV (máy chủ và giao diện) | Quyên (máy chủ), Tuấn Anh (giao diện) |
+| Làm đủ | AI ánh xạ cột (kèm độ tin cậy) cho nhập CSV | Giang (máy chủ), Tuấn Anh (giao diện) |
+| Làm đủ | Triển khai AWS: Docker Compose + Caddy (HTTPS), phát hành một lệnh qua SSH | Giang |
+| Làm đủ | AI tạo quy tắc từ câu tiếng Việt, báo cáo AI tuần | Giang |
 
 **Hợp đồng API đã chốt** (đọc trước khi viết): `docs/thiet-ke/04-api.md` và `docs/thiet-ke/openapi.yaml`. Thuật toán: `docs/thiet-ke/03-thuat-toan-du-bao-phan-luong.md`. Dữ liệu mẫu: `docs/thiet-ke/05-du-lieu-mau.md`. Giao diện làm **theo hợp đồng bằng dữ liệu giả trước** (mock-first) rồi nối API thật khi backend sẵn sàng, để không ai chờ ai.
 
@@ -75,10 +77,15 @@ Cột **Xong lúc** là hạn tương đối `T+giờ:phút`. Cột **Phụ thu�
 | G12 | 4:00 | `feat(ai): gọi Groq và Gemini có hạn chờ và dự phòng` | Hai client HTTP, hạn chờ 8 giây, đổi nhà cung cấp khi lỗi | G10 | test với client giả |
 | G13 | 4:25 | `feat(controller): POST /api/ai/chat` | Kiểm tra câu hỏi, giới hạn tần suất, trả lời kèm `facts`, `suggestions`, `source` | G11, G12 | `curl` hỏi mẫu |
 | G14 | 4:45 | `feat(ai): chặn câu trả lời nêu số không có trong số liệu` | So số phần trăm trong lời mô hình với FACTS, sai thì dùng câu dựng từ số liệu | G13 | test số sai bị thay |
+| G19 | 5:00 | `feat(importer): AI ánh xạ cột CSV kèm độ tin cậy` | Gửi tiêu đề cột và vài dòng mẫu (che cột mã thẻ), nhận ánh xạ + độ tin cậy; dưới 0,8 thì hỏi lại người dùng | G12, Q6 | test với client giả |
+| G20 | 5:20 | `chore(deploy): Dockerfile cho backend và giao diện` | Ảnh Java 17 chạy jar, ảnh Node dựng giao diện rồi phát tĩnh bằng Caddy | G17 | `docker build` hai ảnh |
+| G21 | 5:40 | `chore(deploy): compose production và Caddyfile` | `docker-compose.prod.yml` (db, backend, web), Caddy tự cấp HTTPS và chuyển `/api/*` | G20 | `docker compose -f docker-compose.prod.yml up --build`, `/api/health` ok |
+| G22 | 6:00 | `chore(deploy): script phát hành một lệnh qua SSH` | `release.sh`, `remote-release.sh`: sao lưu CSDL, dựng khi bản cũ còn chạy, thay bản, giữ bản cũ để quay lại; máy chủ và khóa là tham số | G21 | chạy thử khô (`PF_DRY_RUN=1`) |
+| G23 | 6:20 | `feat(ai): tạo quy tắc từ câu tiếng Việt và báo cáo tuần` | `POST /api/rules/parse`, `POST /api/report/week` dựng từ số liệu đã tính | G13 | test chặn câu sai schema |
 | G15 | 5:15 | `chore: tích hợp M3 và kiểm tra luồng đủ hai phía` | Quản trị duyệt, sinh viên thấy đổi; sửa lỗi hợp đồng | M3 | luồng demo chạy hết |
-| G16 | 5:50 | `docs: kịch bản demo và cách chạy qua Localhost hoặc Ngrok` | Các bước demo, lệnh `ngrok http 5173` | M4 | người khác chạy theo được |
-| G17 | 6:15 | `fix: sửa lỗi sau chạy thử toàn hệ thống` | Gom các lỗi còn lại | đóng băng | CI xanh |
-| G18 | 6:45 | `chore: gắn thẻ phiên bản nộp bài` | `git tag v-chung-ket`, chạy `kiem-tra-cua-so-thi.sh` | — | không có cảnh báo |
+| G16 | 6:35 | `docs: kịch bản demo và cách chạy qua Localhost hoặc Ngrok` | Các bước demo, lệnh `ngrok http 5173` | M4 | người khác chạy theo được |
+| G17 | 6:50 | `fix: sửa lỗi sau chạy thử toàn hệ thống` | Gom các lỗi còn lại | đóng băng | CI xanh |
+| G18 | 6:55 | `chore: gắn thẻ phiên bản nộp bài` | `git tag v-chung-ket`, chạy `kiem-tra-cua-so-thi.sh` | — | không có cảnh báo |
 
 ### 4.2 Hào (H): dự báo, phân bổ, duyệt, chất lượng
 
@@ -115,6 +122,7 @@ Cột **Xong lúc** là hạn tương đối `T+giờ:phút`. Cột **Phụ thu�
 | T10 | 5:20 | `feat(student): màn gợi ý bãi và cổng kèm lý do` | Thẻ lớn, mức lấp đầy dự kiến, banner khi kế hoạch đổi | Q8 | test |
 | T11 | 5:45 | `feat(student): màn chỉ đường hai chặng` | Nút Google Maps (`google.com/maps/dir/?api=1&destination=...`), sơ đồ trường tô đường đi | Q9 | ảnh chụp trên điện thoại |
 | T12 | 6:10 | `feat(assistant): trang hỏi đáp có biểu đồ khớp số` | Khung chat, gợi ý câu hỏi, công tắc Mock | G13 | hỏi thử |
+| T14 | 6:20 | `feat(import): màn nhập CSV và ánh xạ cột có độ tin cậy` | Tải tệp, xem trước, sửa ánh xạ cột AI đề xuất, xác nhận nhập | G19, Q13 | nhập thử tệp mẫu |
 | T13 | 6:30 | `style: hoàn thiện giao diện trên điện thoại và máy tính` | Lề, tràn ngang, trạng thái rỗng, hỗ trợ bàn phím | đóng băng | không tràn ngang ở 390 px |
 
 ### 4.4 Quyên (Q): dữ liệu, giả lập, gợi ý sinh viên, kiểm thử, tài liệu (người nhận thay khi vắng)
@@ -128,6 +136,7 @@ Cột **Xong lúc** là hạn tương đối `T+giờ:phút`. Cột **Phụ thu�
 | Q5 | 2:40 | `feat(sim): nút tăng đột biến +20%` | `POST /api/sim/spike` thêm xe mới có cặp vào/ra | Q4 | Giang |
 | Q6 | 3:10 | `feat(importer): nạp lịch sử vào CSDL` | `HistoryImporter` theo lô, chạy lại không trùng | G2, Q2 | Giang |
 | Q7 | 3:30 | `feat(campus): cấu hình trường vào CSDL` | Nạp bãi, cổng, tòa nhà, tuyến đường từ JSON seed | G2 | Giang |
+| Q13 | 4:00 | `feat(importer): API nhập CSV lịch sử có kiểm tra cột` | `POST /api/import/...`: giới hạn kích thước, kiểm tra cột và giá trị, nạp theo lô, báo dòng lỗi | Q6 | nhập tệp mẫu, dòng sai bị báo | Giang |
 | Q8 | 4:20 | `feat(student): thuật toán gợi ý bãi và cổng` | `StudentService`: bãi gần nơi học, tránh bãi sắp đầy theo kế hoạch, lý do bằng chữ | H10 | Hào |
 | Q9 | 4:45 | `feat(student): dữ liệu chỉ đường và API sinh viên` | `GET /api/student/recommendation`, tuyến, bước, phút đi bộ | Q8 | Hào |
 | Q10 | 5:20 | `test(e2e): kịch bản Playwright cho ba luồng chính` | Quản trị xem dashboard, đột biến thấy điều hướng, sinh viên nhận gợi ý | M3 | Tuấn Anh |
@@ -155,8 +164,8 @@ Làm tiếp theo thứ tự: (1) chặn câu trả lời AI nêu số sai và bi
 ## 7. Kiểm tra cuối buổi
 
 ```bash
-scripts/bao-cao-commit.sh "2026-10-03T06:30:00+07:00"      # số commit theo người và theo giờ
-scripts/kiem-tra-cua-so-thi.sh "2026-10-03T06:30:00+07:00" "2026-10-03T13:30:00+07:00"   # mọi commit logic nằm trong cửa sổ, giờ tác giả và giờ commit khớp nhau
+scripts/bao-cao-commit.sh "2026-10-03T07:30:00+07:00"      # số commit theo người và theo giờ
+scripts/kiem-tra-cua-so-thi.sh "2026-10-03T07:30:00+07:00" "2026-10-03T14:30:00+07:00"   # mọi commit logic nằm trong cửa sổ, giờ tác giả và giờ commit khớp nhau
 ```
 
 Danh sách nộp: link repo, tag `v-chung-ket`, README (cách chạy, ảnh chụp, bảng API đã làm), kịch bản demo.

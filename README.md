@@ -36,3 +36,7 @@ Kiểm thử backend dùng CSDL riêng: đặt `DB_URL=jdbc:postgresql://localho
 - Kế hoạch, phân công, lịch commit từng người: [`docs/ke-hoach-ngay-thi.md`](docs/ke-hoach-ngay-thi.md)
 - Quy ước commit và nhánh: [`docs/quy-uoc-commit.md`](docs/quy-uoc-commit.md)
 - Commit khung trắng được gắn tag `khung-trang`; mọi thứ sau tag đó là công việc trong giờ thi.
+
+## Ghi chú về công cụ AI
+
+Theo xác nhận của Ban Tổ chức, nhóm được dùng công cụ AI hỗ trợ lập trình trong giờ thi. Mã nghiệp vụ được viết mới trong giờ thi; mỗi commit mang tên người làm. Các thao tác với AI đều do thành viên chịu trách nhiệm xem lại, chạy test và commit.
