@@ -12,6 +12,16 @@ function updateLot(config: CampusConfig, lotId: string, patch: Record<string, un
   return { ...config, lots: config.lots.map((lot) => lot.id === lotId ? { ...lot, ...patch } : lot) }
 }
 
+function updateAlternates(config: CampusConfig, lotId: string, alternates: string[]): CampusConfig {
+  return updateLot(config, lotId, { alternates })
+}
+
+function swapAlternates(items: string[], first: number, second: number): string[] {
+  const next = [...items]
+  ;[next[first], next[second]] = [next[second], next[first]]
+  return next
+}
+
 export function SettingsPage() {
   const { config, loading, saving, error, success, load, update, save } = useCampusSettings()
   const [apiKey, setApiKey] = useState('')
@@ -38,7 +48,11 @@ export function SettingsPage() {
         <small>{gateName(lot.gate)} · {buildingName(lot.near)}</small>
       </div>)}</div></section>
       <div className="settings-lists"><section><h2>Danh sách cổng</h2><div>{config.gates.map((gate) => <span key={gate.id}>{gate.name}</span>)}</div></section><section><h2>Danh sách tòa nhà</h2><div>{config.buildings.map((building) => <span key={building.id}>{building.name}</span>)}</div></section></div>
-      <section className="advanced-settings"><h2>Ưu tiên bãi thay thế</h2>{config.lots.map((lot) => <p key={lot.id}><strong>{lot.id}</strong> → {(lot.alternates ?? []).map((id) => config.lots.find((candidate) => candidate.id === id)?.name ?? id).join(' → ') || 'Không có'}</p>)}</section>
+      <section className="advanced-settings"><h2>Ưu tiên bãi thay thế</h2>{config.lots.map((lot) => {
+        const alternates = lot.alternates ?? []
+        const available = config.lots.filter((candidate) => candidate.id !== lot.id && !alternates.includes(candidate.id))
+        return <div className="alternate-editor" key={lot.id}><strong>{lot.id}</strong><ol>{alternates.map((id, index) => <li key={id}><span>{config.lots.find((candidate) => candidate.id === id)?.name ?? id}</span><button type="button" aria-label={`${id} lên`} disabled={index === 0} onClick={() => update((current) => updateAlternates(current, lot.id, swapAlternates(alternates, index, index - 1)))}>↑</button><button type="button" aria-label={`${id} xuống`} disabled={index === alternates.length - 1} onClick={() => update((current) => updateAlternates(current, lot.id, swapAlternates(alternates, index, index + 1)))}>↓</button><button type="button" aria-label={`${id} xóa`} onClick={() => update((current) => updateAlternates(current, lot.id, alternates.filter((candidate) => candidate !== id)))}>Xóa</button></li>)}</ol><div className="alternate-add"><select aria-label={`${lot.id} thêm bãi thay thế`} defaultValue=""><option value="" disabled>Chọn bãi thay thế</option>{available.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select><button type="button" aria-label={`${lot.id} thêm`} onClick={(event) => { const select = event.currentTarget.previousElementSibling as HTMLSelectElement; if (select.value) { update((current) => updateAlternates(current, lot.id, [...alternates, select.value])); select.value = '' } }}>Thêm</button></div></div>
+      })}</section>
     </div>
   </div>
 }
