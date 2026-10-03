@@ -17,6 +17,8 @@ public class ForecastService {
     private final LotRepository lots;
     private final ParkFlowClock clock;
     private final JdbcTemplate jdbc;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.parkflow.backend.approval.PlanVersionService plans;
 
     public ForecastService(BaselineService baseline, LotRepository lots, ParkFlowClock clock, JdbcTemplate jdbc) {
         this.baseline = baseline;
@@ -87,8 +89,9 @@ public class ForecastService {
         for (int i = 0; i < calculated.points().size(); i++) {
             var p = calculated.points().get(i);
             int count = (int) Math.round(p.count());
-            // Chưa có kế hoạch áp dụng ở H4; H10 sẽ nối số sau điều hướng vào đây.
-            points.add(new ForecastResponse.Point(p.t().toString(), bySlot.get(i), count, count));
+            // Chỉ áp dụng kế hoạch đã duyệt, trong đúng cửa sổ điều hướng.
+            points.add(new ForecastResponse.Point(p.t().toString(), bySlot.get(i), count,
+                    plans.afterPlan(date, lotId, p.t(), count)));
         }
         var peak = points.get(0);
         for (var p : points) if (p.forecast() > peak.forecast()) peak = p;
