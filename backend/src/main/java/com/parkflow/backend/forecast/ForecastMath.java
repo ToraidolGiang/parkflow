@@ -32,6 +32,20 @@ public final class ForecastMath {
         return Math.max(K_MIN, Math.min(K_MAX, k));
     }
 
+    /** Ngưỡng 30 xe áp dụng cho net_forecast theo mục 3 của đặc tả. */
+    public static double factor(double netActual, double netForecast) {
+        requireFinite(netActual);
+        requireFinite(netForecast);
+        return netForecast < K_MIN_BASE ? 1 : clampK(netActual / netForecast);
+    }
+
+    public static int corrected(int current, double k, double baseSlot, double baseNow) {
+        requireFinite(k);
+        requireFinite(baseSlot);
+        requireFinite(baseNow);
+        return (int) Math.max(0, Math.round(current + k * (baseSlot - baseNow)));
+    }
+
     /** Giờ giữa hai mốc thuộc khung bên trái; ngoài ca không có chỉ số hợp lệ. */
     public static int slotIndex(String time) {
         if (time == null || !time.matches("[0-9]{2}:[0-9]{2}")) {
