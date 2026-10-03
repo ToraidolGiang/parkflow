@@ -1,4 +1,5 @@
 export type Coordinate = [number, number]
+export type CampusFootprint = { x: number; y: number; width: number; height: number }
 
 export type CampusThresholds = {
   yellow?: number
@@ -22,6 +23,7 @@ export type CampusBuilding = {
   name: string
   nearLot: string
   svg?: Coordinate
+  footprint?: CampusFootprint
   [key: string]: unknown
 }
 
@@ -70,4 +72,24 @@ export type CampusLookup = {
   lotName: (id: string) => string
   gateName: (id: string) => string
   buildingName: (id: string) => string
+}
+
+export type CampusGeometry = {
+  buildings: Array<Pick<CampusBuilding, 'id' | 'name'> & { svg: Coordinate; footprint?: CampusFootprint }>
+  lots: Array<Pick<CampusLot, 'id' | 'name'> & { svg: Coordinate }>
+  gates: Array<Pick<CampusGate, 'id' | 'name'> & { svg: Coordinate }>
+  map?: CampusMapGeometry
+}
+
+export type CampusMapGeometry = {
+  viewBox: [number, number, number, number]
+  roads: Coordinate[][]
+  courtyard: CampusFootprint
+}
+
+export type PartialCampusGeometry = {
+  buildings?: CampusBuilding[]
+  lots?: CampusLot[]
+  gates?: CampusGate[]
+  map?: Partial<CampusMapGeometry> & { width?: number; height?: number }
 }
