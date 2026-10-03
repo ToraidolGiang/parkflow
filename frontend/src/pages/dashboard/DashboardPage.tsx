@@ -1,4 +1,4 @@
-import { mockApiEnabled } from '../sv/api/http'
+import { mockApiEnabled } from '../../shared/api/http'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { useDashboardOverview } from '../../shared/api/dashboard'
@@ -30,24 +30,26 @@ function StatusBadge({ status }: { status: LotStatus['status'] }) {
 }
 
 export function DashboardPage() {
-  const { data, isLoading, error } = useDashboardOverview()
+  const { data, isLoading, error, isRefreshing, refresh } = useDashboardOverview()
   const [simulatorRunning, setSimulatorRunning] = useState(false)
   const [simulatorMessage, setSimulatorMessage] = useState('')
   if (isLoading) return <div className="screen-status">Đang tải bảng điều khiển…</div>
-  if (error || !data) return <div className="screen-status">Không thể tải dữ liệu bảng điều khiển.</div>
+  if (!data) return <div className="screen-status"><p>Không thể tải dữ liệu bảng điều khiển.</p><button className="primary-button" onClick={refresh}>Thử lại</button></div>
   return <div className="dashboard-page">
-    <header className="dashboard-header"><div><h1>Bảng điều khiển</h1><p>Dữ liệu mô phỏng · {data.date} cập nhật {data.updatedAt}</p></div><div className="dashboard-actions">{mockApiEnabled() && <><span className={`simulator-state ${simulatorRunning ? 'is-running' : ''}`}>{simulatorRunning ? 'Đang phát dữ liệu' : 'Mô phỏng đang dừng'}</span><button className="secondary-button" onClick={() => { setSimulatorRunning((value) => !value); setSimulatorMessage('') }}>{simulatorRunning ? 'Dừng mô phỏng' : 'Bắt đầu mô phỏng'}</button><button className="spike-button" disabled={!simulatorRunning} onClick={() => setSimulatorMessage('Đã tăng lưu lượng mô phỏng thêm 20%')}>Tăng đột biến 20%</button></>}<Link className="assistant-button" to="/assistant">Hỏi trợ lý</Link></div></header>
+    <header className="dashboard-header"><div><h1>Bảng điều khiển</h1><p>{mockApiEnabled() ? 'Dữ liệu mô phỏng' : 'Dữ liệu hệ thống'} · {data.date} cập nhật {data.updatedAt}</p></div><div className="dashboard-actions">{mockApiEnabled() && <><span className={`simulator-state ${simulatorRunning ? 'is-running' : ''}`}>{simulatorRunning ? 'Đang phát dữ liệu' : 'Mô phỏng đang dừng'}</span><button className="secondary-button" onClick={() => { setSimulatorRunning((value) => !value); setSimulatorMessage('') }}>{simulatorRunning ? 'Dừng mô phỏng' : 'Bắt đầu mô phỏng'}</button><button className="spike-button" disabled={!simulatorRunning} onClick={() => setSimulatorMessage('Đã tăng lưu lượng mô phỏng thêm 20%')}>Tăng đột biến 20%</button></>}<Link className="assistant-button" to="/assistant">Hỏi trợ lý</Link></div></header>
     {simulatorMessage && <div className="simulator-notice" role="status">{simulatorMessage}</div>}
+    {error && <div className="dashboard-warning" role="status"><span>Dữ liệu chưa thể cập nhật. Đang giữ lần tải thành công gần nhất.</span><button onClick={refresh}>Thử lại</button></div>}
+    {isRefreshing && <p className="dashboard-refreshing" aria-live="polite">Đang cập nhật dữ liệu…</p>}
     <section className="kpi-grid" aria-label="Chỉ số tổng quan">
-      <article className="kpi-card"><span>Tổng xe hiện tại</span><strong>{numberFormat.format(data.totalVehicles)}</strong><small>Tổng 4 bãi · cập nhật {data.updatedAt}</small></article>
+      <article className="kpi-card"><span>Tổng xe hiện tại</span><strong>{numberFormat.format(data.totalVehicles)}</strong><small>Tổng {data.lots.length} bãi · cập nhật {data.updatedAt}</small></article>
       <article className="kpi-card"><span>Số bãi quá tải</span><strong className="danger">{data.overloadedLots} / {data.lots.length}</strong><small>{data.lots.filter(l => l.percentage >= 100).map(l => l.name).join(', ') || 'Các bãi còn chỗ'}</small></article>
-      <article className="kpi-card"><span>Cao điểm dự kiến</span><strong className="warning">{data.peakWindow}</strong><small>{mockApiEnabled() ? 'Bãi A dự kiến 113%' : 'Dự báo theo kế hoạch được duyệt'}</small></article>
+      <article className="kpi-card"><span>Cao điểm dự kiến</span><strong className="warning">{data.peakWindow}</strong><small>{data.forecastAvailable ? 'Theo dữ liệu dự báo mới nhất' : 'Chưa có lịch sử để dự báo'}</small></article>
       <article className="kpi-card"><span>Lưu lượng 15 phút gần nhất</span><strong className="blue">{data.recentFlow}</strong><small>xe / 15 phút gần nhất</small></article>
     </section>
     <section className="dashboard-grid">
-      <article className="panel map-panel"><h2>Bản đồ khuôn viên</h2><CampusMap lots={data.lots} /></article>
+      <article className="panel map-panel"><h2>Bản đồ khuôn viên</h2><CampusMap campus={data.campus} lots={data.lots} /></article>
       <article className="panel occupancy-panel"><h2>Mức lấp đầy lúc {data.updatedAt}</h2><p className="panel-subtitle">so với sức chứa thiết kế · Trên 100%: xe lấn lối đi</p><OccupancyChart lots={data.lots} /></article>
-      <article className="panel table-panel"><h2>Trạng thái bãi xe</h2><div className="table-wrap"><table><thead><tr><th>Bãi</th><th>Hiện tại</th><th>Lấp đầy</th><th>Trạng thái</th><th>Cổng</th></tr></thead><tbody>{data.lots.map((lot) => <tr key={lot.lotId}><td>{lot.name}</td><td>{lot.current} / {lot.capacity}</td><td className={`text-${lot.status}`}>{lot.percentage}%</td><td><StatusBadge status={lot.status} /></td><td>{lot.gate}</td></tr>)}</tbody></table></div></article>
+      <article className="panel table-panel"><h2>Trạng thái bãi xe</h2>{data.qualityFlags.length > 0 && <p className="quality-summary">{data.qualityFlags.length} cảnh báo chất lượng dữ liệu cần kiểm tra</p>}<div className="table-wrap"><table><thead><tr><th>Bãi</th><th>Hiện tại</th><th>Lấp đầy</th><th>Trạng thái</th><th>Cổng</th></tr></thead><tbody>{data.lots.map((lot) => <tr key={lot.lotId}><td>{lot.name}{lot.sourceLabel && <small className={`data-flag flag-${lot.dataFlag}`}>{lot.sourceLabel}</small>}</td><td>{lot.current} / {lot.capacity}</td><td className={`text-${lot.status}`}>{lot.percentage}%</td><td><StatusBadge status={lot.status} /></td><td>{lot.gate}</td></tr>)}</tbody></table></div></article>
       <article className="panel flow-panel"><h2>Lưu lượng xe vào (xe / 15 phút)</h2>{data.flow.length > 1 ? <FlowChart points={data.flow} /> : <p>Chưa có chuỗi lưu lượng; xem số xe vào 15 phút gần nhất ở trên.</p>}</article>
     </section>
   </div>

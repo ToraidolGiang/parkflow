@@ -2,10 +2,10 @@
   "flags": [
     {
       "id": "qf_001",
-      "lotId": "D",
+      "lotId": "C2",
       "type": "missing_out",
       "since": "2026-10-03T06:40:00+07:00",
-      "message": "Bãi D: 3 phiên có vào nhưng không có lượt ra quá 24 giờ"
+      "message": "Nhà xe C2: 3 phiên có vào nhưng không có lượt ra quá 24 giờ"
     }
   ]
 }

@@ -19,12 +19,12 @@
       "pct": 89
     },
     {
-      "lotId": "C",
+      "lotId": "C1",
       "count": 324,
       "pct": 81
     },
     {
-      "lotId": "D",
+      "lotId": "C2",
       "count": 198,
       "pct": 66
     }
@@ -41,12 +41,12 @@
       "pct": 96
     },
     {
-      "lotId": "C",
+      "lotId": "C1",
       "count": 384,
       "pct": 96
     },
     {
-      "lotId": "D",
+      "lotId": "C2",
       "count": 198,
       "pct": 66
     }
@@ -54,7 +54,7 @@
   "moves": [
     {
       "from": "A",
-      "to": "C",
+      "to": "C1",
       "vehicles": 60,
       "quota": 60,
       "used": 12,
@@ -71,7 +71,7 @@
   ],
   "excluded": [
     {
-      "lotId": "D",
+      "lotId": "C2",
       "reason": "Cổng chính đang quá tải"
     }
   ],
@@ -89,7 +89,7 @@
     "maxTargetPct": 1.0,
     "allowedDest": [
       "B",
-      "C"
+      "C1"
     ]
   },
   "pending": null

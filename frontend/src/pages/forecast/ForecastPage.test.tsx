@@ -16,12 +16,12 @@ describe('ForecastPage', () => {
     render(<MemoryRouter><ForecastPage /></MemoryRouter>)
 
     expect(await screen.findByRole('heading', { name: 'Dự báo & Đề xuất' })).toBeInTheDocument()
-    expect(screen.getByText('113%')).toBeInTheDocument()
-    expect(screen.getByText('65 xe')).toBeInTheDocument()
-    expect(screen.getByText(/Tín hiệu Bãi C gián đoạn/)).toBeInTheDocument()
-    expect(screen.getByText('565/500 xe · 113%')).toBeInTheDocument()
-    expect(screen.getByText('480/500 xe · 96%')).toBeInTheDocument()
-    expect(screen.getAllByText(/60 sang Bãi C, 25 sang Bãi B/)).toHaveLength(2)
+    expect(screen.getByText('103.4%')).toBeInTheDocument()
+    expect(screen.getByText('10 xe')).toBeInTheDocument()
+    expect(screen.getAllByText(/Nhà xe C2/).length).toBeGreaterThan(0)
+    expect(screen.getByText('605/1450 xe · 121%')).toBeInTheDocument()
+    expect(screen.getByText('490/1450 xe · 98%')).toBeInTheDocument()
+    expect(screen.getByText((_, element) => element?.tagName === 'LI' && Boolean(element.textContent?.includes('76 xe từ Nhà xe hầm 1 sau G3 sang Nhà xe C1 gần H3')))).toBeInTheDocument()
   })
 
   it('approves a pending plan and reports success', async () => {
