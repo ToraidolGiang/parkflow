@@ -1,0 +1,1 @@
+export function PlanChangeBanner({ message }: { message: string | null }) { return message ? <div className="plan-banner" role="status"><strong>Kế hoạch vừa cập nhật</strong><span>{message}</span></div> : null }
