@@ -79,4 +79,68 @@ class ForecastApiTest {
         mvc.perform(get("/api/forecast").param("lotId",lot).param("date","2026-10-03"))
             .andExpect(status().isNotFound()).andExpect(jsonPath("$.error").value("NO_HISTORY"));
     }
+    @Test void futureDateHasNoActualsAndDoesNotUseCurrentOccupancy() throws Exception {
+        event(now.minusDays(6).withHour(6).withMinute(0), true);
+        jdbc.update("UPDATE lots SET current_count=9 WHERE lot_id=?", lot);
+        mvc.perform(get("/api/forecast").param("lotId",lot).param("date","2026-10-04"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.k").value(1))
+            .andExpect(jsonPath("$.points[*].actual", everyItem(nullValue())))
+            .andExpect(jsonPath("$.points[*].forecast", everyItem(is(1))))
+            .andExpect(jsonPath("$.peak.count").value(1));
+    }
+
+    @Test void outsideOperatingWindowUsesUnadjustedHistory() throws Exception {
+        event(now.minusWeeks(1).withHour(6).withMinute(0), true);
+        event(now.withHour(6).withMinute(0), false);
+        jdbc.update("UPDATE lots SET current_count=9 WHERE lot_id=?", lot);
+        for (int hour : new int[]{5,14}) {
+            when(clock.read()).thenReturn(new ParkFlowClock.Reading("sim", now.withHour(hour)));
+            mvc.perform(get("/api/forecast").param("lotId",lot).param("date","2026-10-03"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.k").value(1))
+                .andExpect(jsonPath("$.points[*].forecast", everyItem(is(1))));
+        }
+    }
+
+    private void risingHistory() {
+        event(now.minusWeeks(1).withHour(6).withMinute(0), true);
+        for (int i=0; i<30; i++) event(now.minusWeeks(1).withHour(7).withMinute(0), true);
+        for (int i=0; i<10; i++) event(now.minusWeeks(1).withHour(8).withMinute(0), true);
+    }
+
+    @Test void upperClampAndPeakUseCumulativeLiveEvents() throws Exception {
+        risingHistory();
+        for (int i=0; i<60; i++) event(now.withHour(7).withMinute(0), false);
+        jdbc.update("UPDATE lots SET current_count=60 WHERE lot_id=?",lot);
+        mvc.perform(get("/api/forecast").param("lotId",lot).param("date","2026-10-03"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.k").value(1.5))
+            .andExpect(jsonPath("$.peak.t").value("08:00"))
+            .andExpect(jsonPath("$.peak.count").value(75))
+            .andExpect(jsonPath("$.peak.pct").value(750))
+            .andExpect(jsonPath("$.points[4].actual").value(60))
+            .andExpect(jsonPath("$.points[8].actual").value(nullValue()));
+    }
+
+    @Test void lowerClampExcludesHistoricalAndFutureEventsFromActualNet() throws Exception {
+        risingHistory();
+        for (int i=0; i<15; i++) event(now.withHour(7).withMinute(0), false);
+        for (int i=0; i<60; i++) event(now.withHour(8).withMinute(0), false);
+        for (int i=0; i<60; i++) event(now.withHour(7).withMinute(0), true);
+        jdbc.update("UPDATE lots SET current_count=15 WHERE lot_id=?",lot);
+        mvc.perform(get("/api/forecast").param("lotId",lot).param("date","2026-10-03"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.k").value(0.7))
+            .andExpect(jsonPath("$.points[8].forecast").value(22));
+    }
+
+    @Test void exactOpeningAndClosingBoundariesRemainValid() throws Exception {
+        event(now.minusWeeks(1).withHour(6).withMinute(0), true);
+        event(now.withHour(6).withMinute(0), false);
+        for (int hour : new int[]{6,13}) {
+            when(clock.read()).thenReturn(new ParkFlowClock.Reading("sim", now.withHour(hour).withMinute(0)));
+            mvc.perform(get("/api/forecast").param("lotId",lot).param("date","2026-10-03"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.points",hasSize(29)))
+                .andExpect(jsonPath("$.points[0].actual").value(1))
+                .andExpect(jsonPath("$.points[28].forecast").value(1));
+        }
+    }
 }
