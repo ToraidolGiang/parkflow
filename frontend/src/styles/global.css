@@ -1,4 +1,12 @@
 :root{font-family:Inter,"Segoe UI",sans-serif;color:#14213a;background:#f6f9fd;text-rendering:optimizeLegibility}
 *{box-sizing:border-box}
 body{margin:0}
-.blank{padding:32px}
+.app-shell{min-height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}
+.sidebar{background:#fff;border-right:1px solid #d5e0ed;padding:20px}
+.brand-block{display:block;font-size:20px;font-weight:700;text-decoration:none;color:inherit;margin-bottom:24px}
+.sidebar-nav{display:flex;flex-direction:column;gap:8px}
+.nav-link{padding:10px;color:#40536e;text-decoration:none;border-radius:8px}
+.nav-link.active{background:#dceaff;color:#1761ec}
+.main-content{min-width:0;padding:24px}
+.screen{padding:20px;background:#fff;border:1px solid #d5e0ed;border-radius:12px}
+@media(max-width:720px){.app-shell{display:block}.sidebar-nav{flex-direction:row;overflow:auto}.main-content{padding:12px}}
