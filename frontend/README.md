@@ -1,7 +1,7 @@
 # frontend — React + TS + Vite (Tuấn Anh, Quyên, Giang)
 
 Tuấn Anh khởi tạo: `npm create vite@latest . -- --template react-ts`, thêm Recharts + react-router, PR `feat/tuananh-scaffold` (làm đầu tiên, ~1 giờ: router, layout, API client, JSON giả, component sơ đồ trường).
-Dev proxy `/api` → `http://localhost:8080`. Dùng JSON giả trong `src/shared/mock/` (đúng shape `docs/openapi.yaml`) khi backend chưa xong; hoặc chạy `npx @stoplight/prism-cli mock ../docs/openapi.yaml`.
+Dev proxy `/api` mặc định → `http://localhost:8080`. Nếu cổng 8080 đang được ứng dụng khác sử dụng, đặt `VITE_API_PROXY_TARGET` (ví dụ `http://localhost:8081`) trước khi chạy Vite. Dùng JSON giả trong `src/shared/mock/` (đúng shape `docs/openapi.yaml`) khi backend chưa xong; hoặc chạy `npx @stoplight/prism-cli mock ../docs/openapi.yaml`.
 
 ## Thư mục (mỗi người một thư mục)
 | Đường dẫn | Nội dung | Người làm |
