@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import { approvePlan, useForecastOverview } from '../../shared/api/forecast'
+import { getCompliance } from '../../shared/api/compliance'
 import { ApiError } from '../../shared/api/http'
-import type { ForecastPoint, PlanLot } from '../../shared/types/forecast'
+import type { Compliance, ForecastPoint, PlanLot } from '../../shared/types/forecast'
 import './forecast.css'
 
 function ForecastChart({ points, thresholds, lotName }: { points: ForecastPoint[]; thresholds: { warn: number; design: number; ceiling: number }; lotName: string }) {
@@ -39,6 +40,9 @@ export function ForecastPage() {
   const [option, setOption] = useState('')
   const approvalLock = useRef(false)
   const [approvedVersion, setApprovedVersion] = useState<number>()
+  const [compliance, setCompliance] = useState<Compliance | null>(null)
+  const [complianceError, setComplianceError] = useState('')
+  const [loadingCompliance, setLoadingCompliance] = useState(false)
 
   if (isLoading) return <div className="screen-status" role="status">Đang tải dự báo…</div>
   if (!data) return <div className="screen-status" role={error ? 'alert' : 'status'}><p>{error ? 'Không thể tải dữ liệu dự báo.' : 'Đang tải dự báo…'}</p>{error && <button onClick={refresh}>Thử lại</button>}</div>
@@ -74,6 +78,13 @@ export function ForecastPage() {
     }
   }
 
+  const loadCompliance = async () => {
+    setLoadingCompliance(true); setComplianceError('')
+    try { setCompliance(await getCompliance(plan?.version ?? data.plan?.version ?? 0)) }
+    catch { setComplianceError('Không thể tải tỷ lệ tuân thủ của kế hoạch.') }
+    finally { setLoadingCompliance(false) }
+  }
+
   return <div className="forecast-page">
     <header className="forecast-header"><div><h1>Dự báo &amp; Đề xuất</h1><p>Phân tích xu hướng và đề xuất vận hành từ AI · cập nhật {data.generatedAt}</p></div><div className="forecast-actions"><select aria-label="Chọn bãi xe" onChange={(event) => selectLot(event.target.value)} value={data.selectedLotId}>{data.availableLots.map(lot => <option key={lot.id} value={lot.id}>{lot.name}</option>)}</select><button className="run-forecast" onClick={runForecast} type="button">Chạy dự báo</button></div></header>
     <section className="forecast-kpis" aria-label="Tổng quan dự báo">
@@ -86,5 +97,6 @@ export function ForecastPage() {
     {!plan ? <section className="forecast-panel empty-plan"><h2>Chưa có kế hoạch</h2><p>Dự báo vẫn sẵn sàng; chưa có phương án phân luồng cho ngày này.</p></section> : <><section className="forecast-panel allocation-panel"><h2>Trước / sau điều hướng · {data.date}</h2><p>{plan.reason}</p>{plan.before.map((before) => { const after = plan.after.find(item => item.lotId === before.lotId); return after ? <AllocationRow after={after} before={before} key={before.lotId} /> : null })}</section>
     <section className="forecast-panel proposal-panel"><div><h2>Đề xuất vận hành <span className="ai-chip">AI</span></h2><ul>{plan.moves.map(move => <li key={`${move.from}-${move.to}`}>Điều hướng <strong>{move.vehicles} xe từ {move.fromName} sang {move.toName}</strong>.</li>)}{plan.gateActions.map(action => <li key={action.gate}>Mở <strong>{action.gateName}</strong> lúc {action.openFrom} thay vì {action.normalOpen}.</li>)}{plan.excluded.map(item => <li key={item.lotId}>Không chọn {item.lotName} vì {item.reason.toLowerCase()}.</li>)}</ul></div><div className="approval-block"><span className="pending-badge">{data.pendingPlan && approvedVersion === data.pendingPlan.version ? 'Đã duyệt' : data.pendingPlan ? 'Chờ duyệt' : 'Đang áp dụng'} · v{plan.version}{data.pendingPlan && approvedVersion === data.pendingPlan.version ? ' (chờ đồng bộ)' : ''}</span>{data.pendingPlan && approvedVersion !== data.pendingPlan.version && <><label>Người duyệt<input aria-label="Người duyệt" onChange={event => setApprovedBy(event.target.value)} value={approvedBy} /></label>{data.pendingPlan.shortfall > 0 && <label>Phương án xử lý<select aria-label="Phương án xử lý" onChange={event => setOption(event.target.value)} value={option}><option value="">Chọn phương án</option>{data.pendingPlan.shortfallOptions?.map(item => <option key={item.code} value={item.code}>{item.label}</option>)}</select></label>}<button disabled={isApproving || !approvedBy.trim() || (data.pendingPlan.shortfall > 0 && !option)} onClick={approve} type="button">{isApproving ? 'Đang duyệt…' : 'Duyệt phương án'}</button></>}</div></section></>}
     <div aria-live="polite">{approvalMessage && <p className="approval-success">{approvalMessage}</p>}{approvalError && <p className="approval-error">{approvalError}</p>}</div>
+    {plan && <section className="forecast-panel compliance-panel"><div className="panel-heading"><h2>Tuân thủ kế hoạch · v{plan.version}</h2><button type="button" onClick={() => void loadCompliance()} disabled={loadingCompliance}>{loadingCompliance ? 'Đang tải…' : 'Xem tuân thủ'}</button></div>{complianceError && <p className="approval-error">{complianceError}</p>}{compliance && <div className="compliance-summary"><strong>{Math.round(compliance.overall * 100)}%</strong><span>Tổng thể</span>{compliance.byMove.map((move) => <p key={`${move.from}-${move.to}`}>{move.from} → {move.to}: {Math.round(move.compliance * 100)}% ({move.arrived}/{move.issued})</p>)}</div>}</section>}
   </div>
 }

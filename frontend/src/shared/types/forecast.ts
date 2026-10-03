@@ -36,3 +36,4 @@ export type ForecastOverview = {
 
 export type ApprovalResult = { version: number; status: 'approved' }
 export type ApprovalInput = { approvedBy: string; option?: string }
+export type Compliance = { version: number; overall: number; byMove: { from: string; to: string; issued: number; arrived: number; compliance: number }[] }

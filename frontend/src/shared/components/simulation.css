@@ -1,2 +1,97 @@
-.simulation-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 24px 0;padding:16px;background:#fff;border:1px solid #dbe4ef;border-radius:12px;color:#21334c;font-size:13px}
-.simulation-controls label{display:flex;gap:6px;align-items:center}.simulation-controls input,.simulation-controls select,.simulation-controls button{padding:8px;border:1px solid #c8d3e1;border-radius:6px;background:#fff;font:inherit}.simulation-controls button{cursor:pointer;color:#115ab7}.simulation-controls button:disabled{opacity:.5;cursor:default}.simulation-controls [role=alert]{width:100%;margin:0;color:#b42318}
+.simulation-controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin: 0;
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid #dbe4ef;
+  color: #21334c;
+  font-size: 13px;
+}
+
+.simulation-controls > strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.simulation-controls label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.simulation-controls input,
+.simulation-controls select,
+.simulation-controls button {
+  padding: 7px 8px;
+  border: 1px solid #c8d3e1;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+}
+
+.simulation-controls input[type="password"] {
+  width: 120px;
+  min-width: 80px;
+}
+
+.simulation-controls input[type="date"] {
+  width: 150px;
+}
+
+.simulation-controls select {
+  max-width: 200px;
+}
+
+.simulation-controls button {
+  cursor: pointer;
+  color: #115ab7;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.simulation-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.simulation-controls > span[role="status"] {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.simulation-controls [role="alert"] {
+  width: 100%;
+  margin: 0;
+  color: #b42318;
+}
+
+@media (max-width: 900px) {
+  .simulation-controls {
+    padding: 10px 16px;
+    gap: 8px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .simulation-controls {
+    padding: 8px 12px;
+  }
+
+  .simulation-controls input[type="password"] {
+    width: 90px;
+  }
+
+  .simulation-controls input[type="date"] {
+    width: 130px;
+  }
+}

@@ -4,10 +4,16 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ForecastPage } from './ForecastPage'
 import * as forecastApi from '../../shared/api/forecast'
+import * as complianceApi from '../../shared/api/compliance'
 
 vi.mock('../../shared/api/forecast', async () => {
   const actual = await vi.importActual<typeof import('../../shared/api/forecast')>('../../shared/api/forecast')
   return { ...actual, approvePlan: vi.fn(), useForecastOverview: vi.fn() }
+})
+
+vi.mock('../../shared/api/compliance', async () => {
+  const actual = await vi.importActual<typeof import('../../shared/api/compliance')>('../../shared/api/compliance')
+  return { ...actual, getCompliance: vi.fn() }
 })
 
 describe('ForecastPage', () => {
@@ -43,6 +49,7 @@ describe('ForecastPage', () => {
     vi.mocked(forecastApi.approvePlan).mockReset()
     vi.mocked(forecastApi.useForecastOverview).mockReset()
     vi.mocked(forecastApi.useForecastOverview).mockImplementation(useMockForecastOverview)
+    vi.mocked(complianceApi.getCompliance).mockReset()
   })
 
   it('shows the forecast and pending plan', async () => {
@@ -52,6 +59,16 @@ describe('ForecastPage', () => {
     expect(screen.getByText('103.4%')).toBeInTheDocument()
     expect(screen.getByText('10 xe')).toBeInTheDocument()
     expect(screen.getByText('Chờ duyệt · v4')).toBeInTheDocument()
+  })
+
+  it('loads compliance for the active plan version', async () => {
+    vi.mocked(complianceApi.getCompliance).mockResolvedValue({ version: 4, overall: 0.96, byMove: [{ from: 'A', to: 'C', issued: 85, arrived: 82, compliance: 0.964 }] })
+    render(<MemoryRouter><ForecastPage /></MemoryRouter>)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Xem tuân thủ' }))
+    await waitFor(() => expect(complianceApi.getCompliance).toHaveBeenCalledWith(4))
+    expect(await screen.findByText('96%')).toBeInTheDocument()
+    expect(screen.getByText('A → C: 96% (82/85)')).toBeInTheDocument()
   })
 
   it('approves a pending plan and reports success', async () => {
