@@ -1,10 +1,19 @@
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
+import { AppShell } from './shared/layout/AppShell'
 
-/** Khung trắng: các màn hình được thêm trong giờ thi (xem docs/ke-hoach-ngay-thi.md). */
+function Screen({ title }: { title: string }) {
+  return <section className="screen"><h1>{title}</h1></section>
+}
+
 export default function App() {
-  return (
-    <Routes>
-      <Route path="*" element={<main className="blank"><h1>ParkFlow</h1><p>Khung trắng, chưa có màn hình nào.</p></main>} />
-    </Routes>
-  )
+  return <Routes>
+    <Route element={<AppShell />}>
+      <Route index element={<Screen title="Bảng điều khiển" />} />
+      <Route path="forecast" element={<Screen title="Dự báo & Đề xuất" />} />
+      <Route path="sv" element={<Screen title="Sinh viên" />} />
+      <Route path="assistant" element={<Screen title="Trợ lý" />} />
+      <Route path="import" element={<Screen title="Nhập dữ liệu" />} />
+      <Route path="*" element={<Navigate replace to="/" />} />
+    </Route>
+  </Routes>
 }
