@@ -22,7 +22,7 @@ public final class ReplayLog {
         return "evt_"+hash(ts+"|"+lot+"|"+card+"|"+direction).substring(0,40);
     }
     /** Ngày có log demo riêng; các ngày lịch sử được đọc từ swipe_log.csv. */
-    public static final LocalDate DEMO_DATE=LocalDate.of(2026,9,22);
+    public static final LocalDate DEMO_DATE=LocalDate.of(2026,10,3);
     public static List<Event> read(LocalDate date) {
         String file=date.equals(DEMO_DATE)?"demo_log.csv":"swipe_log.csv";
         return read(file,date);

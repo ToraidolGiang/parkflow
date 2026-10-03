@@ -16,8 +16,8 @@ class SimulationServiceTest {
     @BeforeEach void provideReplayEvents() {
         // Kiểm thử vòng đời dùng dữ liệu cố định, không phụ thuộc ngày của CSV demo.
         replayLog = mockStatic(ReplayLog.class);
-        var entry = new ReplayLog.Event("evt_test_in", Instant.parse("2026-09-22T00:00:00Z"),
-                "A", "in", "motorbike", "test-card", Instant.parse("2026-09-22T01:00:00Z"));
+        var entry = new ReplayLog.Event("evt_test_in", ReplayLog.DEMO_DATE.atStartOfDay(java.time.ZoneOffset.UTC).toInstant(),
+                "A", "in", "motorbike", "test-card", ReplayLog.DEMO_DATE.atStartOfDay(java.time.ZoneOffset.UTC).plusHours(1).toInstant());
         var exit = new ReplayLog.Event("evt_test_out", entry.exit(), "A", "out", "motorbike", "test-card", null);
         replayLog.when(() -> ReplayLog.read(ReplayLog.DEMO_DATE)).thenReturn(List.of(entry, exit));
         replayLog.when(() -> ReplayLog.read(ReplayLog.DEMO_DATE.plusYears(1))).thenReturn(List.of());
@@ -42,7 +42,7 @@ class SimulationServiceTest {
         var service = new SimulationService(mock(EventSender.class));
         var state = service.start(ReplayLog.DEMO_DATE, 30);
         assertEquals(true, state.get("running"));
-        assertEquals("2026-09-22T06:00+07:00", state.get("simTime"));
+        assertEquals(ReplayLog.DEMO_DATE + "T06:00+07:00", state.get("simTime"));
         assertEquals(2, state.get("remaining"));
         assertTrue(service.currentTime().isPresent());
         assertThrows(ApiException.class, () -> service.start(ReplayLog.DEMO_DATE, 30));
