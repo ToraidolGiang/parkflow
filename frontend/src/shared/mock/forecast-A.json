@@ -1,0 +1,192 @@
+{
+  "lotId": "A",
+  "date": "2026-10-03",
+  "k": 1.073,
+  "generatedAt": "2026-10-03T07:20:00+07:00",
+  "peak": {
+    "t": "08:00",
+    "count": 1500,
+    "pct": 103.4
+  },
+  "points": [
+    {
+      "t": "06:00",
+      "actual": 20,
+      "forecast": 20,
+      "afterPlan": 20
+    },
+    {
+      "t": "06:15",
+      "actual": 48,
+      "forecast": 45,
+      "afterPlan": 48
+    },
+    {
+      "t": "06:30",
+      "actual": 96,
+      "forecast": 90,
+      "afterPlan": 96
+    },
+    {
+      "t": "06:45",
+      "actual": 182,
+      "forecast": 170,
+      "afterPlan": 182
+    },
+    {
+      "t": "07:00",
+      "actual": 321,
+      "forecast": 300,
+      "afterPlan": 321
+    },
+    {
+      "t": "07:15",
+      "actual": 428,
+      "forecast": 400,
+      "afterPlan": 428
+    },
+    {
+      "t": "07:30",
+      "actual": null,
+      "forecast": 524,
+      "afterPlan": 439
+    },
+    {
+      "t": "07:45",
+      "actual": null,
+      "forecast": 605,
+      "afterPlan": 520
+    },
+    {
+      "t": "08:00",
+      "actual": null,
+      "forecast": 594,
+      "afterPlan": 509
+    },
+    {
+      "t": "08:15",
+      "actual": null,
+      "forecast": 557,
+      "afterPlan": 472
+    },
+    {
+      "t": "08:30",
+      "actual": null,
+      "forecast": 503,
+      "afterPlan": 418
+    },
+    {
+      "t": "08:45",
+      "actual": null,
+      "forecast": 449,
+      "afterPlan": 364
+    },
+    {
+      "t": "09:00",
+      "actual": null,
+      "forecast": 406,
+      "afterPlan": 321
+    },
+    {
+      "t": "09:15",
+      "actual": null,
+      "forecast": 374,
+      "afterPlan": 296
+    },
+    {
+      "t": "09:30",
+      "actual": null,
+      "forecast": 342,
+      "afterPlan": 271
+    },
+    {
+      "t": "09:45",
+      "actual": null,
+      "forecast": 321,
+      "afterPlan": 257
+    },
+    {
+      "t": "10:00",
+      "actual": null,
+      "forecast": 299,
+      "afterPlan": 242
+    },
+    {
+      "t": "10:15",
+      "actual": null,
+      "forecast": 290,
+      "afterPlan": 240
+    },
+    {
+      "t": "10:30",
+      "actual": null,
+      "forecast": 282,
+      "afterPlan": 240
+    },
+    {
+      "t": "10:45",
+      "actual": null,
+      "forecast": 273,
+      "afterPlan": 238
+    },
+    {
+      "t": "11:00",
+      "actual": null,
+      "forecast": 265,
+      "afterPlan": 237
+    },
+    {
+      "t": "11:15",
+      "actual": null,
+      "forecast": 256,
+      "afterPlan": 235
+    },
+    {
+      "t": "11:30",
+      "actual": null,
+      "forecast": 248,
+      "afterPlan": 234
+    },
+    {
+      "t": "11:45",
+      "actual": null,
+      "forecast": 239,
+      "afterPlan": 232
+    },
+    {
+      "t": "12:00",
+      "actual": null,
+      "forecast": 230,
+      "afterPlan": 230
+    },
+    {
+      "t": "12:15",
+      "actual": null,
+      "forecast": 222,
+      "afterPlan": 222
+    },
+    {
+      "t": "12:30",
+      "actual": null,
+      "forecast": 213,
+      "afterPlan": 213
+    },
+    {
+      "t": "12:45",
+      "actual": null,
+      "forecast": 205,
+      "afterPlan": 205
+    },
+    {
+      "t": "13:00",
+      "actual": null,
+      "forecast": 196,
+      "afterPlan": 196
+    }
+  ],
+  "thresholds": {
+    "yellow": 80,
+    "over": 100,
+    "critical": 120
+  }
+}

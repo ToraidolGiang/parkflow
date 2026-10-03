@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Cảnh báo sớm trước giờ vào học",
+    "type": "alert",
+    "scope": "ALL",
+    "from": "06:30",
+    "to": "08:00",
+    "metric": "forecast_pct",
+    "op": ">=",
+    "value": 90,
+    "action": "Thông báo điều hành từ 18:00 hôm trước",
+    "id": 1,
+    "createdAt": "2026-10-02T17:30:00+07:00",
+    "enabled": true
+  }
+]

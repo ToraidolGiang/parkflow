@@ -1,0 +1,15 @@
+{
+  "rule": {
+    "name": "Cảnh báo sớm trước giờ vào học",
+    "type": "alert",
+    "scope": "ALL",
+    "from": "06:30",
+    "to": "08:00",
+    "metric": "forecast_pct",
+    "op": ">=",
+    "value": 90,
+    "action": "Thông báo điều hành từ 18:00 hôm trước"
+  },
+  "explanation": "Nếu dự báo lấp đầy của bất kỳ bãi nào ≥ 90% trong 06:30–08:00 thì thông báo điều hành từ 18:00 hôm trước.",
+  "source": "mock"
+}

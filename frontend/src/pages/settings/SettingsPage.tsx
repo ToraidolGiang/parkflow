@@ -1,32 +1,58 @@
+import { useState } from 'react'
+
+import type { CampusConfig } from '../../shared/types/campus'
+import { useCampusSettings } from './useCampusSettings'
 import './settings.css'
 
-const lots = [
-  ['Bãi A', '500', '600', 'Cổng chính', 'Nhà hành chính'],
-  ['Bãi B', '350', '420', 'Cổng phía Đông', 'Thư viện'],
-  ['Bãi C', '400', '480', 'Cổng phía Đông', 'Giảng đường A'],
-  ['Bãi D', '300', '360', 'Cổng chính', 'Khu thể thao'],
-]
-
-const morning = [['Tiết 1', '07:00'], ['Tiết 2', '07:55'], ['Tiết 3', '08:50'], ['Tiết 4', '09:45']]
-const afternoon = [['Tiết 5', '12:30'], ['Tiết 6', '13:25'], ['Tiết 7', '14:20'], ['Tiết 8', '15:15']]
-
-function Field({ label, value }: { label: string; value: string }) {
-  return <label className="settings-field"><span>{label}</span><input defaultValue={value} /></label>
+function Field({ label, value, onChange, type = 'text' }: { label: string; value: string | number; onChange?: (value: string) => void; type?: string }) {
+  return <label className="settings-field"><span>{label}</span><input type={type} value={value} onChange={(event) => onChange?.(event.target.value)} /></label>
 }
 
-function ShiftCard({ title, lessons }: { title: string; lessons: string[][] }) {
-  return <section className="shift-card"><h3>{title}</h3><div className="shift-fields">{lessons.map(([label, value]) => <Field key={label} label={label} value={value} />)}</div></section>
+function updateLot(config: CampusConfig, lotId: string, patch: Record<string, unknown>): CampusConfig {
+  return { ...config, lots: config.lots.map((lot) => lot.id === lotId ? { ...lot, ...patch } : lot) }
+}
+
+function updateAlternates(config: CampusConfig, lotId: string, alternates: string[]): CampusConfig {
+  return updateLot(config, lotId, { alternates })
+}
+
+function swapAlternates(items: string[], first: number, second: number): string[] {
+  const next = [...items]
+  ;[next[first], next[second]] = [next[second], next[first]]
+  return next
 }
 
 export function SettingsPage() {
+  const { config, loading, saving, error, success, load, update, save } = useCampusSettings()
+  const [apiKey, setApiKey] = useState('')
+
+  if (loading) return <div className="settings-page" role="status">Đang tải cấu hình</div>
+  if (error && !config) return <div className="settings-page"><p className="settings-error" role="alert">{error}</p><button className="primary-action" type="button" onClick={() => void load()}>Thử lại</button></div>
+  if (!config) return null
+
+  const gateName = (id: string) => config.gates.find((gate) => gate.id === id)?.name ?? id
+  const buildingName = (id: string) => config.buildings.find((building) => building.id === id)?.name ?? id
+
   return <div className="settings-page">
-    <header className="settings-header"><div><h1>Cấu hình trường</h1><p>Đại học Thành Phố · Cơ sở chính</p></div><div className="settings-header-actions"><button className="text-action" type="button">Nạp cấu hình mẫu</button><button className="primary-action" type="button">Lưu cấu hình</button></div></header>
+    <header className="settings-header"><div><h1>Cấu hình trường</h1><p>{config.school} · Cơ sở chính</p></div><div className="settings-header-actions"><label className="api-key-field"><span>API key</span><input aria-label="API key" type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="EVENTS_API_KEY" /></label><button className="primary-action" type="button" disabled={saving || !apiKey} onClick={() => void save(apiKey)}>{saving ? 'Đang lưu…' : 'Lưu cấu hình'}</button></div></header>
     <div className="settings-content">
-      <section className="settings-summary"><Field label="Tổng số sinh viên" value="12.000" /><Field label="Tỷ lệ xe máy (%)" value="65" /></section>
-      <section className="lots-section"><h2>Bãi xe · 4 bãi</h2><div className="lots-form"><div className="lots-head"><span>Bãi</span><span>Thiết kế (xe)</span><span>Tối đa (xe)</span><span>Cổng vào</span><span>Tòa nhà gần</span></div>{lots.map((lot) => <div className="lot-form-row" key={lot[0]}>{lot.map((value, index) => <input aria-label={`${lot[0]} ${['tên','thiết kế','tối đa','cổng vào','tòa nhà gần'][index]}`} defaultValue={value} key={`${lot[0]}-${value}`} />)}</div>)}</div></section>
-      <div className="settings-lists"><section><h2>Danh sách cổng</h2><div><span>Cổng chính</span><span>Cổng phía Đông</span></div></section><section><h2>Danh sách tòa nhà</h2><div><span>Nhà hành chính</span><span>Thư viện</span><span>Giảng đường A</span><span>Khu thể thao</span></div></section></div>
-      <section className="schedule-section"><h2>Ca học &amp; giờ bắt đầu tiết</h2><p>Theo lịch học của trường · cập nhật từ file lịch học</p><div className="shift-grid"><ShiftCard lessons={morning} title="Ca sáng" /><ShiftCard lessons={afternoon} title="Ca chiều" /></div></section>
-      <section className="advanced-settings"><h2>Cấu hình nâng cao</h2><div><Field label="Giờ mở cửa" value="06:00" /><Field label="Giờ đóng cửa" value="22:00" /><Field label="Tỷ lệ xe qua đêm tối đa (%)" value="5" /></div><p>Bãi thay thế ưu tiên: A → C; B → C. Kiểm tra sức chứa và tình trạng cổng trước khi áp dụng.</p></section>
+      {error && <p className="settings-error" role="alert">{error}</p>}
+      {success && <p className="settings-success" role="status">{success}</p>}
+      <section className="settings-summary"><Field label="Tên trường" value={config.school} onChange={(value) => update((current) => ({ ...current, school: value }))} /></section>
+      <section className="lots-section"><h2>Bãi xe · {config.lots.length} bãi</h2><div className="lots-form"><div className="lots-head"><span>Bãi</span><span>Thiết kế (xe)</span><span>Tối đa (xe)</span><span>Cổng vào</span><span>Tòa nhà gần</span></div>{config.lots.map((lot) => <div className="lot-form-row" key={lot.id}>
+        <Field label={`${lot.id} tên`} value={lot.name} onChange={(value) => update((current) => updateLot(current, lot.id, { name: value }))} />
+        <Field label={`${lot.id} thiết kế`} type="number" value={lot.capacity} onChange={(value) => update((current) => updateLot(current, lot.id, { capacity: Number(value) }))} />
+        <Field label={`${lot.id} tối đa`} type="number" value={lot.max ?? lot.capacity} onChange={(value) => update((current) => updateLot(current, lot.id, { max: Number(value) }))} />
+        <select aria-label={`${lot.id} cổng vào`} value={lot.gate} onChange={(event) => update((current) => updateLot(current, lot.id, { gate: event.target.value }))}>{config.gates.map((gate) => <option key={gate.id} value={gate.id}>{gate.name}</option>)}</select>
+        <select aria-label={`${lot.id} tòa nhà gần`} value={lot.near} onChange={(event) => update((current) => updateLot(current, lot.id, { near: event.target.value }))}>{config.buildings.map((building) => <option key={building.id} value={building.id}>{building.name}</option>)}</select>
+        <small>{gateName(lot.gate)} · {buildingName(lot.near)}</small>
+      </div>)}</div></section>
+      <div className="settings-lists"><section><h2>Danh sách cổng</h2><div>{config.gates.map((gate) => <span key={gate.id}>{gate.name}</span>)}</div></section><section><h2>Danh sách tòa nhà</h2><div>{config.buildings.map((building) => <span key={building.id}>{building.name}</span>)}</div></section></div>
+      <section className="advanced-settings"><h2>Ưu tiên bãi thay thế</h2>{config.lots.map((lot) => {
+        const alternates = lot.alternates ?? []
+        const available = config.lots.filter((candidate) => candidate.id !== lot.id && !alternates.includes(candidate.id))
+        return <div className="alternate-editor" key={lot.id}><strong>{lot.id}</strong><ol>{alternates.map((id, index) => <li key={id}><span>{config.lots.find((candidate) => candidate.id === id)?.name ?? id}</span><button type="button" aria-label={`${id} lên`} disabled={index === 0} onClick={() => update((current) => updateAlternates(current, lot.id, swapAlternates(alternates, index, index - 1)))}>↑</button><button type="button" aria-label={`${id} xuống`} disabled={index === alternates.length - 1} onClick={() => update((current) => updateAlternates(current, lot.id, swapAlternates(alternates, index, index + 1)))}>↓</button><button type="button" aria-label={`${id} xóa`} onClick={() => update((current) => updateAlternates(current, lot.id, alternates.filter((candidate) => candidate !== id)))}>Xóa</button></li>)}</ol><div className="alternate-add"><select aria-label={`${lot.id} thêm bãi thay thế`} defaultValue=""><option value="" disabled>Chọn bãi thay thế</option>{available.map((candidate) => <option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select><button type="button" aria-label={`${lot.id} thêm`} onClick={(event) => { const select = event.currentTarget.previousElementSibling as HTMLSelectElement; if (select.value) { update((current) => updateAlternates(current, lot.id, [...alternates, select.value])); select.value = '' } }}>Thêm</button></div></div>
+      })}</section>
     </div>
   </div>
 }

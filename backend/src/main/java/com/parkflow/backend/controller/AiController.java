@@ -4,6 +4,8 @@ import com.parkflow.backend.ai.AiMode;
 import com.parkflow.backend.ai.AiService;
 import com.parkflow.backend.ai.AiUnavailable;
 import com.parkflow.backend.ai.ColumnMapper;
+import com.parkflow.backend.ai.RuleParser;
+import com.parkflow.backend.ai.WeeklyReport;
 import com.parkflow.backend.common.ApiException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,6 +31,8 @@ public class AiController {
     private final AiService ai;
     private final AiMode mode;
     private final ColumnMapper columns;
+    private final RuleParser ruleParser;
+    private final WeeklyReport weeklyReport;
 
     @PostMapping("/chat")
     public JsonNode chat(@RequestBody JsonNode body) {
@@ -50,6 +54,29 @@ public class AiController {
             throw new ApiException(HttpStatus.BAD_REQUEST, "BAD_REQUEST",
                     "Cần `kind` (swipe_log hoặc schedule) và `columns` gồm 1 đến 40 cột, mỗi cột có `name`.");
         }
+    }
+
+    /** Câu tiếng Việt thành bản nháp quy tắc để xem trước; không lưu gì (lưu bằng POST /api/rules sau khi quản trị xác nhận). */
+    @PostMapping("/parse-rule")
+    public JsonNode parseRule(@RequestBody JsonNode body) {
+        String text = body.path("text").isString() ? body.path("text").asString() : null;
+        try {
+            return ruleParser.parse(text);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "Cần câu `text` từ 1 đến 300 ký tự.");
+        }
+    }
+
+    /** Báo cáo tuần markdown: `{weekStart: "2026-09-14"}` (ngày đầu tuần); số liệu tổng hợp ở backend, AI chỉ viết lời. */
+    @PostMapping("/report")
+    public JsonNode report(@RequestBody JsonNode body) {
+        java.time.LocalDate weekStart;
+        try {
+            weekStart = java.time.LocalDate.parse(body.path("weekStart").asString(""));
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "Cần `weekStart` dạng yyyy-MM-dd.");
+        }
+        return weeklyReport.report(weekStart);
     }
 
     @GetMapping("/mode")

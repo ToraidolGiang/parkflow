@@ -1,0 +1,22 @@
+{
+  "date": "21/09/2026",
+  "updatedAt": "08:45",
+  "totalVehicles": 1443,
+  "overloadedLots": 1,
+  "peakWindow": "07:15–08:00",
+  "recentFlow": 52,
+  "lots": [
+    { "lotId": "A", "name": "Bãi A", "current": 565, "capacity": 500, "percentage": 113, "gate": "Cổng chính", "nearby": "Nhà hành chính", "status": "overloaded" },
+    { "lotId": "B", "name": "Bãi B", "current": 312, "capacity": 350, "percentage": 89, "gate": "Cổng phía Đông", "nearby": "Thư viện", "status": "near-full" },
+    { "lotId": "C", "name": "Bãi C", "current": 368, "capacity": 400, "percentage": 92, "gate": "Cổng phía Đông", "nearby": "Giảng đường A", "status": "near-full" },
+    { "lotId": "D", "name": "Bãi D", "current": 198, "capacity": 300, "percentage": 66, "gate": "Cổng chính", "nearby": "Khu thể thao", "status": "available" }
+  ],
+  "flow": [
+    { "time": "06:00", "value": 45 }, { "time": "06:15", "value": 82 },
+    { "time": "06:30", "value": 135 }, { "time": "06:45", "value": 195 },
+    { "time": "07:00", "value": 275 }, { "time": "07:15", "value": 345 },
+    { "time": "07:30", "value": 300 }, { "time": "07:45", "value": 240 },
+    { "time": "08:00", "value": 175 }, { "time": "08:15", "value": 110 },
+    { "time": "08:30", "value": 76 }, { "time": "08:45", "value": 52 }
+  ]
+}

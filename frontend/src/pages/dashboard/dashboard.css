@@ -1,0 +1,84 @@
+.dashboard-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.simulator-state {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.simulator-state::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.simulator-state.is-running { color: #047857; }
+.simulator-state.is-running::before { background: #10b981; box-shadow: 0 0 0 3px #d1fae5; }
+
+.secondary-button,
+.spike-button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #cfd9e8;
+  border-radius: 9px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.spike-button { border-color: #fed7aa; color: #c2410c; background: #fff7ed; }
+.spike-button:disabled { cursor: not-allowed; opacity: .45; }
+.simulator-notice { margin: -8px 24px 12px; padding: 9px 12px; border: 1px solid #bbf7d0; border-radius: 9px; color: #047857; background: #f0fdf4; font-size: 12px; }
+
+.dashboard-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -8px 24px 12px;
+  padding: 10px 12px;
+  border: 1px solid #fed7aa;
+  border-radius: 9px;
+  color: #9a3412;
+  background: #fff7ed;
+  font-size: 12px;
+}
+
+.dashboard-warning button {
+  border: 0;
+  background: transparent;
+  color: #c2410c;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-refreshing {
+  margin: -4px 24px 10px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.quality-summary { color: #c2410c; font-size: 12px; }
+.data-flag { display: block; margin-top: 3px; font-size: 10px; font-weight: 600; }
+.flag-estimated, .flag-suspect { color: #b45309; }
+.flag-signal_lost { color: #dc2626; }
+
+@media (max-width: 720px) {
+  .dashboard-header { gap: 14px; flex-direction: column; }
+  .dashboard-actions { justify-content: flex-start; }
+  .simulator-notice { margin-inline: 16px; }
+  .dashboard-warning, .dashboard-refreshing { margin-inline: 16px; }
+}

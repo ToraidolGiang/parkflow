@@ -1,0 +1,66 @@
+{
+  "clock": {
+    "mode": "sim",
+    "now": "2026-10-03T07:21:05+07:00"
+  },
+  "updatedAt": "2026-10-03T07:21:05+07:00",
+  "lots": [
+    {
+      "lotId": "A",
+      "name": "Bãi A",
+      "count": 1500,
+      "capacity": 1450,
+      "maxCapacity": 1740,
+      "pct": 103.4,
+      "level": "red",
+      "gate": "MAIN",
+      "nearBuilding": "G3",
+      "lastEventAt": "2026-10-03T07:20:58+07:00",
+      "dataFlag": "ok"
+    },
+    {
+      "lotId": "B",
+      "name": "Bãi B",
+      "count": 1300,
+      "capacity": 1450,
+      "maxCapacity": 1740,
+      "pct": 89.7,
+      "level": "yellow",
+      "gate": "EAST",
+      "nearBuilding": "G3",
+      "lastEventAt": "2026-10-03T07:20:51+07:00",
+      "dataFlag": "ok"
+    },
+    {
+      "lotId": "C1",
+      "name": "Bãi C1",
+      "count": 240,
+      "capacity": 300,
+      "maxCapacity": 360,
+      "pct": 80.0,
+      "level": "green",
+      "gate": "EAST",
+      "nearBuilding": "H3",
+      "lastEventAt": "2026-10-03T07:20:55+07:00",
+      "dataFlag": "ok"
+    },
+    {
+      "lotId": "C2",
+      "name": "Bãi C2",
+      "count": 216,
+      "capacity": 300,
+      "maxCapacity": 360,
+      "pct": 72.0,
+      "level": "green",
+      "gate": "EAST",
+      "nearBuilding": "H3",
+      "lastEventAt": "2026-10-03T07:20:49+07:00",
+      "dataFlag": "suspect"
+    }
+  ],
+  "totals": {
+    "count": 3256,
+    "overloadedLots": 1,
+    "inflowLast15": 52
+  }
+}

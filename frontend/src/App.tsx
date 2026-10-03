@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { AppShell } from './shared/layout/AppShell'
 import { StudentLayout } from './pages/sv/components/StudentLayout'
 import { StudentFlowProvider } from './pages/sv/state/StudentFlowContext'
@@ -11,25 +12,21 @@ import { AssistantPage } from './pages/assistant/AssistantPage'
 import { RulesPage } from './pages/rules/RulesPage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 
-function Screen({ title }: { title: string }) {
-  return <section className="screen"><h1>{title}</h1></section>
-}
-
-function StudentRoutes() {
-  return <StudentFlowProvider><Routes><Route element={<StudentLayout />}><Route index element={<StudentSelectionPage />} /><Route path="recommendation" element={<StudentRecommendationPage />} /><Route path="route" element={<StudentRoutePage />} /></Route></Routes></StudentFlowProvider>
-}
+function StudentRoutes() { return <StudentFlowProvider><Routes><Route element={<StudentLayout />}><Route index element={<StudentSelectionPage />} /><Route path="recommendation" element={<StudentRecommendationPage />} /><Route path="route" element={<StudentRoutePage />} /></Route></Routes></StudentFlowProvider> }
 
 export default function App() {
-  return <Routes>
-    <Route path="sv/*" element={<StudentRoutes />} />
-    <Route element={<AppShell />}>
-      <Route index element={<Screen title="Bảng điều khiển" />} />
-      <Route path="forecast" element={<ForecastPage />} />
-      <Route path="assistant" element={<AssistantPage />} />
-      <Route path="import" element={<ImportPage />} />
-      <Route path="rules" element={<RulesPage />} />
-      <Route path="settings" element={<SettingsPage />} />
-      <Route path="*" element={<Navigate replace to="/" />} />
-    </Route>
-  </Routes>
+  return (
+    <Routes>
+      <Route path="/sv/*" element={<StudentRoutes />} />
+      <Route element={<AppShell />}>
+        <Route index element={<DashboardPage />} />
+        <Route path="assistant" element={<AssistantPage />} />
+        <Route path="import" element={<ImportPage />} />
+        <Route path="forecast" element={<ForecastPage />} />
+        <Route path="rules" element={<RulesPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate replace to="/" />} />
+      </Route>
+    </Routes>
+  )
 }
