@@ -14,6 +14,11 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> uploadTooLarge(Exception e) {
+        return body(HttpStatus.PAYLOAD_TOO_LARGE, "TOO_LARGE", "File quá lớn (tối đa 20 MB).");
+    }
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<Map<String, Object>> api(ApiException e) {
         return body(e.status(), e.code(), e.getMessage());

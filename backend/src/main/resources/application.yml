@@ -3,6 +3,10 @@ spring:
     import: optional:file:../.env[.properties]
   application:
     name: parkflow
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/parkflow}
     username: ${DB_USER:parkflow}

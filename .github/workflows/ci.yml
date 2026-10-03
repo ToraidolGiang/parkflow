@@ -32,6 +32,10 @@ jobs:
       - name: Build + test
         if: steps.has.outputs.yes == 'true'
         working-directory: backend
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/parkflow
+          DB_USER: parkflow
+          DB_PASSWORD: parkflow
         run: |
           chmod +x mvnw
           ./mvnw -B verify
