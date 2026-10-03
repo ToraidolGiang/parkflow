@@ -1,6 +1,8 @@
 package com.parkflow.backend.ingest;
 
 import com.parkflow.backend.common.ParkFlowClock;
+import com.parkflow.backend.quality.LotQuality;
+import com.parkflow.backend.quality.QualityService;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,12 +15,14 @@ import org.springframework.stereotype.Service;
 /**
  * Trạng thái hiện tại của các bãi cho giao diện (hợp đồng: docs/thiet-ke/04-api.md mục 2).
  * `level` theo sức chứa THIẾT KẾ: green (dưới 80%), yellow (80 đến dưới 100%), red (100 đến dưới 120%), critical (từ 120%).
+ * `dataFlag` lấy từ {@link QualityService#flagsByLot()} (H12).
  */
 @Service
 @RequiredArgsConstructor
 public class LotStatusService {
     private final JdbcTemplate jdbc;
     private final ParkFlowClock clock;
+    private final QualityService qualityService;
 
     static String level(double pct) {
         if (pct >= 120) return "critical";
@@ -41,6 +45,8 @@ public class LotStatusService {
                 SELECT lot_id, name, current_count, capacity, max_capacity, gate, near_building, last_event_at
                 FROM lots ORDER BY lot_id
                 """);
+        // Lấy cờ chất lượng một lần cho toàn bộ bãi (H12).
+        Map<String, LotQuality> qualityByLot = qualityService.flagsByLot();
         for (var row : rows) {
             int count = ((Number) row.get("current_count")).intValue();
             int capacity = ((Number) row.get("capacity")).intValue();
@@ -57,8 +63,11 @@ public class LotStatusService {
             lot.put("nearBuilding", row.get("near_building"));
             Object last = row.get("last_event_at");
             lot.put("lastEventAt", last == null ? null : ((java.sql.Timestamp) last).toInstant().atZone(ParkFlowClock.ZONE).toOffsetDateTime().toString());
-            // Cờ chất lượng dữ liệu do phần kiểm tra chất lượng đặt sau; mặc định số liệu tin cậy.
-            lot.put("dataFlag", "ok");
+            // dataFlag từ QualityService (H12); mặc định "ok" nếu bãi chưa có bản ghi chất lượng.
+            String lotId = (String) row.get("lot_id");
+            lot.put("dataFlag", qualityByLot.getOrDefault(lotId,
+                    new LotQuality(lotId, java.util.List.of(com.parkflow.backend.quality.QualityFlag.ok), java.util.Map.of()))
+                    .primaryFlag());
             lots.add(lot);
             total += count;
             if (pct >= 100) overloaded++;

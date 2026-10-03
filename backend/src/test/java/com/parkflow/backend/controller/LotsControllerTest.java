@@ -24,7 +24,7 @@ class LotsControllerTest {
 
     @BeforeEach void setup() {
         cleanup();
-        jdbc.update("INSERT INTO lots (lot_id, name, capacity, max_capacity, gate, near_building, current_count, raw_count) VALUES ('ST1', 'Bãi một', 500, 600, 'MAIN', 'Nhà hành chính', 460, 460)");
+        jdbc.update("INSERT INTO lots (lot_id, name, capacity, max_capacity, gate, near_building, current_count, raw_count, last_event_at) VALUES ('ST1', 'Bãi một', 500, 600, 'MAIN', 'Nhà hành chính', 460, 460, now())");
         jdbc.update("INSERT INTO lots (lot_id, name, capacity, max_capacity, gate, current_count, raw_count) VALUES ('ST2', 'Bãi hai', 100, 120, 'EAST', 100, 100)");
         jdbc.update("INSERT INTO lots (lot_id, name, capacity, max_capacity, gate, current_count, raw_count) VALUES ('ST3', 'Bãi ba', 100, 150, 'EAST', 125, 125)");
         jdbc.update("INSERT INTO lots (lot_id, name, capacity, max_capacity, gate, current_count, raw_count) VALUES ('ST4', 'Bãi bốn', 200, 240, 'EAST', 10, 10)");
