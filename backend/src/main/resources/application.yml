@@ -28,3 +28,10 @@ server:
 parkflow:
   # Khóa của nhà cung cấp gửi sự kiện (header X-Api-Key), nhiều khóa ngăn bằng dấu phẩy. Để trống khi chạy dev thì không chặn.
   api-keys: ${EVENTS_API_KEY:}
+  ai:
+    # Bật thì trợ lý trả lời bằng dữ liệu mẫu dựng từ số liệu thật, không gọi mô hình (demo không gián đoạn).
+    mock: ${AI_MOCK:false}
+    groq:
+      key: ${GROQ_API_KEY:}
+    gemini:
+      key: ${GEMINI_API_KEY:}
