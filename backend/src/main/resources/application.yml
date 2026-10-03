@@ -28,6 +28,9 @@ server:
 parkflow:
   # Khóa của nhà cung cấp gửi sự kiện (header X-Api-Key), nhiều khóa ngăn bằng dấu phẩy. Để trống khi chạy dev thì không chặn.
   api-keys: ${EVENTS_API_KEY:}
+  history:
+    # Nạp lịch sử đóng gói khi khởi động (nền, chỉ khi CSDL chưa có). Tắt mặc định để kiểm thử nhanh; bản chạy thật bật.
+    auto-import: ${HISTORY_AUTO_IMPORT:false}
   ai:
     # Bật thì trợ lý trả lời bằng dữ liệu mẫu dựng từ số liệu thật, không gọi mô hình (demo không gián đoạn).
     mock: ${AI_MOCK:false}
