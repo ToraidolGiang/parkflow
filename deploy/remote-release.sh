@@ -35,6 +35,13 @@ fi
 log "Dựng ảnh (bản cũ vẫn đang chạy)"
 compose "$ID" build
 
+# Lần phát hành đầu thay một dịch vụ khác đang giữ cổng 80/443: PF_STOP_OLD_CMD (do người phát hành đưa lúc chạy, không lưu trong repo)
+# dừng nó ngay trước khi bật bản mới, để thời gian gián đoạn chỉ còn vài chục giây. Dừng, không xóa dữ liệu của nó.
+if [ -z "$PREV" ] && [ -n "${PF_STOP_OLD_CMD:-}" ]; then
+  log "Dừng dịch vụ cũ"
+  bash -c "$PF_STOP_OLD_CMD"
+fi
+
 log "Thay bản"
 if ! compose "$ID" up -d --remove-orphans; then
   log "Không khởi động được bản mới"; ROLLBACK=1
@@ -54,6 +61,10 @@ if [ "${ROLLBACK:-0}" = 1 ] || ! healthy; then
   if [ -n "$PREV" ] && [ -d "$RELEASES/$PREV" ]; then
     log "Quay về bản $PREV"
     compose "$PREV" up -d --remove-orphans
+  elif [ -n "${PF_START_OLD_CMD:-}" ]; then
+    log "Bật lại dịch vụ cũ"
+    docker compose -p parkflow-thi down >/dev/null 2>&1 || true
+    bash -c "$PF_START_OLD_CMD"
   fi
   docker compose -p parkflow-thi logs --tail 40 backend >&2 || true
   exit 1
