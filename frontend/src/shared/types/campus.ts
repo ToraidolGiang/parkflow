@@ -61,7 +61,6 @@ export type CampusConfig = {
   buildings: CampusBuilding[]
   lots: CampusLot[]
   routes: CampusRoute[]
-  map?: CampusMap
   [key: string]: unknown
 }
 
